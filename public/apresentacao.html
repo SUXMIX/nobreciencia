@@ -1,57 +1,506 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Apresentação — Efeito Estufa</title>
+    <title>Teste do Gráfico</title>
 
-    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            color: #111827;
+        }
+
+        header {
+            background: #0A2E5C;
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+        header h1 {
+            margin: 0 0 8px;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 14px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+        }
+
+        .temperaturas {
+            display: flex;
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .temperatura {
+            flex: 1;
+            background: #f4f6f8;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .temperatura span {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .temperatura strong {
+            font-size: 28px;
+        }
+
+        canvas {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .botoes {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 12px 22px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        #iniciar {
+            background: #2EC4B6;
+            color: white;
+        }
+
+        #parar {
+            background: #0A2E5C;
+            color: white;
+        }
+
+        #status {
+            margin-top: 15px;
+            color: #555;
+        }
+    </style>
 </head>
 
 <body>
 
     <header>
         <h1>O "Efeito Estufa" na Sala de Aula</h1>
-        <p>Área de apresentação — Experimento</p>
+        <p>Teste do gráfico em tempo real</p>
     </header>
 
     <main>
 
-        <section class="grafico-container">
+        <div class="container">
 
             <h2>Temperatura em tempo real</h2>
 
             <div class="temperaturas">
-                <div>
+
+                <div class="temperatura">
                     <span>Cápsula 1</span>
-                    <strong id="temp1">-- °C</strong>
+                    <strong id="temp1">25,00 °C</strong>
                 </div>
 
-                <div>
+                <div class="temperatura">
                     <span>Cápsula 2</span>
-                    <strong id="temp2">-- °C</strong>
+                    <strong id="temp2">25,00 °C</strong>
                 </div>
+
             </div>
 
-            <div class="grafico">
-                <canvas id="graficoTemperatura"></canvas>
-            </div>
+            <canvas id="grafico"></canvas>
 
-            <div class="controles">
+            <div class="botoes">
                 <button id="iniciar">Iniciar teste</button>
                 <button id="parar">Parar</button>
             </div>
 
             <p id="status">Aguardando início do experimento...</p>
 
-        </section>
+        </div>
 
     </main>
 
-    <script src="app.js"></script>
+
+    <script>
+
+        const canvas = document.getElementById("grafico");
+        const ctx = canvas.getContext("2d");
+
+        const temp1Elemento = document.getElementById("temp1");
+        const temp2Elemento = document.getElementById("temp2");
+        const status = document.getElementById("status");
+
+        let intervalo = null;
+
+        let tempo = [];
+        let dados1 = [];
+        let dados2 = [];
+
+        let temperatura1 = 25;
+        let temperatura2 = 25;
+
+        let segundos = 0;
+
+
+        function ajustarCanvas() {
+
+            const proporcao = window.devicePixelRatio || 1;
+
+            canvas.width = canvas.clientWidth * proporcao;
+            canvas.height = canvas.clientHeight * proporcao;
+
+            ctx.scale(proporcao, proporcao);
+        }
+
+
+        function desenharGrafico() {
+
+            const largura = canvas.clientWidth;
+            const altura = canvas.clientHeight;
+
+            ctx.clearRect(0, 0, largura, altura);
+
+            /*
+                Área útil do gráfico
+            */
+
+            const margemEsquerda = 60;
+            const margemDireita = 20;
+            const margemSuperior = 30;
+            const margemInferior = 50;
+
+            const larguraGrafico =
+                largura - margemEsquerda - margemDireita;
+
+            const alturaGrafico =
+                altura - margemSuperior - margemInferior;
+
+
+            /*
+                Fundo
+            */
+
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, largura, altura);
+
+
+            /*
+                Encontrar valores mínimo e máximo
+            */
+
+            if (dados1.length === 0) {
+                ctx.fillStyle = "#666";
+                ctx.font = "16px Arial";
+                ctx.fillText(
+                    "Clique em 'Iniciar teste'",
+                    largura / 2 - 80,
+                    altura / 2
+                );
+
+                return;
+            }
+
+            const todosDados = [...dados1, ...dados2];
+
+            let minimo = Math.min(...todosDados);
+            let maximo = Math.max(...todosDados);
+
+            minimo -= 0.5;
+            maximo += 0.5;
+
+
+            /*
+                Grade horizontal
+            */
+
+            ctx.strokeStyle = "#dddddd";
+            ctx.lineWidth = 1;
+
+            for (let i = 0; i <= 5; i++) {
+
+                const y =
+                    margemSuperior +
+                    (alturaGrafico / 5) * i;
+
+                ctx.beginPath();
+                ctx.moveTo(margemEsquerda, y);
+                ctx.lineTo(
+                    largura - margemDireita,
+                    y
+                );
+                ctx.stroke();
+
+
+                const valor =
+                    maximo -
+                    ((maximo - minimo) / 5) * i;
+
+                ctx.fillStyle = "#555";
+                ctx.font = "12px Arial";
+
+                ctx.fillText(
+                    valor.toFixed(1) + " °C",
+                    5,
+                    y + 4
+                );
+            }
+
+
+            /*
+                Eixo X
+            */
+
+            ctx.strokeStyle = "#333";
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                margemEsquerda,
+                margemSuperior + alturaGrafico
+            );
+
+            ctx.lineTo(
+                largura - margemDireita,
+                margemSuperior + alturaGrafico
+            );
+
+            ctx.stroke();
+
+
+            /*
+                Função para transformar temperatura
+                em coordenada Y
+            */
+
+            function converterY(valor) {
+
+                return margemSuperior +
+                    alturaGrafico -
+                    ((valor - minimo) /
+                    (maximo - minimo)) *
+                    alturaGrafico;
+            }
+
+
+            /*
+                Função para desenhar uma linha
+            */
+
+            function desenharLinha(dados) {
+
+                if (dados.length < 1) {
+                    return;
+                }
+
+                ctx.beginPath();
+
+                for (let i = 0; i < dados.length; i++) {
+
+                    const x =
+                        margemEsquerda +
+                        (i / Math.max(dados.length - 1, 1)) *
+                        larguraGrafico;
+
+                    const y = converterY(dados[i]);
+
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+
+                ctx.stroke();
+            }
+
+
+            /*
+                Cápsula 1
+            */
+
+            ctx.strokeStyle = "#2EC4B6";
+            ctx.lineWidth = 3;
+
+            desenharLinha(dados1);
+
+
+            /*
+                Cápsula 2
+            */
+
+            ctx.strokeStyle = "#0A2E5C";
+            ctx.lineWidth = 3;
+
+            desenharLinha(dados2);
+
+
+            /*
+                Legenda
+            */
+
+            ctx.fillStyle = "#2EC4B6";
+            ctx.fillRect(largura - 200, 15, 15, 3);
+
+            ctx.fillStyle = "#111";
+            ctx.font = "13px Arial";
+            ctx.fillText(
+                "Cápsula 1",
+                largura - 180,
+                20
+            );
+
+
+            ctx.fillStyle = "#0A2E5C";
+            ctx.fillRect(largura - 100, 15, 15, 3);
+
+            ctx.fillStyle = "#111";
+
+            ctx.fillText(
+                "Cápsula 2",
+                largura - 80,
+                20
+            );
+        }
+
+
+        function adicionarDados() {
+
+            segundos++;
+
+            /*
+                Simulação temporária.
+
+                Depois substituiremos isso pelos
+                dados reais enviados pelo ESP32.
+            */
+
+            temperatura1 +=
+                0.08 + (Math.random() - 0.5) * 0.08;
+
+            temperatura2 +=
+                0.04 + (Math.random() - 0.5) * 0.08;
+
+
+            tempo.push(segundos);
+
+            dados1.push(temperatura1);
+            dados2.push(temperatura2);
+
+
+            /*
+                Mostrar temperatura atual
+            */
+
+            temp1Elemento.textContent =
+                temperatura1.toFixed(2) + " °C";
+
+            temp2Elemento.textContent =
+                temperatura2.toFixed(2) + " °C";
+
+
+            /*
+                Manter somente os últimos 60 pontos
+            */
+
+            if (tempo.length > 60) {
+
+                tempo.shift();
+                dados1.shift();
+                dados2.shift();
+
+            }
+
+
+            desenharGrafico();
+        }
+
+
+        /*
+            BOTÃO INICIAR
+        */
+
+        document
+            .getElementById("iniciar")
+            .addEventListener("click", function () {
+
+                if (intervalo !== null) {
+                    return;
+                }
+
+                status.textContent =
+                    "Experimento em andamento...";
+
+                intervalo =
+                    setInterval(adicionarDados, 1000);
+            });
+
+
+        /*
+            BOTÃO PARAR
+        */
+
+        document
+            .getElementById("parar")
+            .addEventListener("click", function () {
+
+                if (intervalo !== null) {
+
+                    clearInterval(intervalo);
+
+                    intervalo = null;
+                }
+
+                status.textContent =
+                    "Experimento finalizado.";
+            });
+
+
+        /*
+            Ajustar gráfico quando a janela mudar
+        */
+
+        window.addEventListener(
+            "resize",
+            function () {
+
+                ajustarCanvas();
+                desenharGrafico();
+
+            }
+        );
+
+
+        /*
+            Inicialização
+        */
+
+        ajustarCanvas();
+        desenharGrafico();
+
+    </script>
 
 </body>
 </html>
