@@ -19,7 +19,7 @@ export default {
 
         // Receber temperatura do ESP32
         if (url.pathname === "/api/temperatura" && request.method === "POST") {
-
+            
             const dados = await request.json();
 
             console.log("Temperatura recebida:", dados);
