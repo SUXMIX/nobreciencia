@@ -189,8 +189,8 @@
         </div>
 
         <div class="info">
-            Os dados exibidos neste gráfico são recebidos em tempo real
-            pelo sensor MLX90614 conectado ao ESP32.
+            Os dados exibidos são recebidos em tempo real pelo sensor
+            MLX90614 conectado ao ESP32.
         </div>
 
     </div>
@@ -200,14 +200,17 @@
 <script>
 
     // ============================================================
-    // ELEMENTOS DA PÁGINA
+    // ELEMENTOS
     // ============================================================
 
     const canvas = document.getElementById("grafico");
     const ctx = canvas.getContext("2d");
 
-    const statusTexto = document.getElementById("statusTexto");
-    const statusBox = document.getElementById("status");
+    const statusTexto =
+        document.getElementById("statusTexto");
+
+    const statusBox =
+        document.getElementById("status");
 
     const temperatura1Elemento =
         document.getElementById("temperatura1");
@@ -223,7 +226,7 @@
 
 
     // ============================================================
-    // DADOS DO EXPERIMENTO
+    // ESTADO DO EXPERIMENTO
     // ============================================================
 
     let executando = false;
@@ -233,8 +236,26 @@
 
     let tempoInicial = null;
 
-    let ultimaTemperatura1 = null;
-    let ultimaTemperatura2 = null;
+
+    // ============================================================
+    // VALORES PARA ANIMAÇÃO
+    // ============================================================
+
+    let temperaturaAtual1 = null;
+    let temperaturaAlvo1 = null;
+
+    let temperaturaAtual2 = null;
+    let temperaturaAlvo2 = null;
+
+    let ultimoTempo1 = 0;
+    let ultimoTempo2 = 0;
+
+
+    // Velocidade da interpolação visual.
+    // Quanto maior, mais rapidamente a linha acompanha
+    // o novo valor recebido.
+
+    const velocidadeAnimacao = 0.12;
 
 
     // ============================================================
@@ -246,10 +267,14 @@
         const largura = canvas.clientWidth;
         const altura = canvas.clientHeight;
 
-        const escala = window.devicePixelRatio || 1;
+        const escala =
+            window.devicePixelRatio || 1;
 
-        canvas.width = largura * escala;
-        canvas.height = altura * escala;
+        canvas.width =
+            largura * escala;
+
+        canvas.height =
+            altura * escala;
 
         ctx.setTransform(
             escala,
@@ -264,7 +289,167 @@
     }
 
 
-    window.addEventListener("resize", ajustarCanvas);
+    window.addEventListener(
+        "resize",
+        ajustarCanvas
+    );
+
+
+    // ============================================================
+    // INTERPOLAÇÃO
+    // ============================================================
+
+    function aproximar(valorAtual, valorAlvo) {
+
+        if (valorAtual === null) {
+            return valorAlvo;
+        }
+
+        if (valorAlvo === null) {
+            return valorAtual;
+        }
+
+        return (
+            valorAtual +
+            (valorAlvo - valorAtual)
+            * velocidadeAnimacao
+        );
+    }
+
+
+    // ============================================================
+    // DESENHAR LINHA SUAVIZADA
+    // ============================================================
+
+    function desenharLinhaSuavizada(
+        dados,
+        temperaturaAtual,
+        tempoAtual,
+        tempoMax,
+        temperaturaMin,
+        temperaturaMax,
+        margemEsquerda,
+        margemSuperior,
+        graficoLargura,
+        graficoAltura
+    ) {
+
+        if (dados.length === 0) {
+            return;
+        }
+
+        /*
+         * Para manter a curva visualmente suave,
+         * usamos uma curva quadrática entre os pontos.
+         */
+
+        ctx.beginPath();
+
+        let primeiro = dados[0];
+
+        let xAnterior =
+            margemEsquerda +
+            (primeiro.tempo / tempoMax)
+            * graficoLargura;
+
+        let yAnterior =
+            margemSuperior +
+            (
+                (temperaturaMax - primeiro.temperatura)
+                /
+                (temperaturaMax - temperaturaMin)
+            )
+            * graficoAltura;
+
+        ctx.moveTo(
+            xAnterior,
+            yAnterior
+        );
+
+
+        for (
+            let i = 1;
+            i < dados.length;
+            i++
+        ) {
+
+            const pontoAnterior =
+                dados[i - 1];
+
+            const ponto =
+                dados[i];
+
+            const x =
+                margemEsquerda +
+                (ponto.tempo / tempoMax)
+                * graficoLargura;
+
+            const y =
+                margemSuperior +
+                (
+                    (temperaturaMax - ponto.temperatura)
+                    /
+                    (temperaturaMax - temperaturaMin)
+                )
+                * graficoAltura;
+
+
+            const meioX =
+                (xAnterior + x) / 2;
+
+            const meioY =
+                (yAnterior + y) / 2;
+
+
+            ctx.quadraticCurveTo(
+                xAnterior,
+                yAnterior,
+                meioX,
+                meioY
+            );
+
+
+            xAnterior = x;
+            yAnterior = y;
+        }
+
+
+        /*
+         * Adicionar o valor que está sendo
+         * interpolado neste momento.
+         */
+
+        if (
+            temperaturaAtual !== null &&
+            tempoAtual >= 0
+        ) {
+
+            const xAtual =
+                margemEsquerda +
+                (tempoAtual / tempoMax)
+                * graficoLargura;
+
+            const yAtual =
+                margemSuperior +
+                (
+                    (temperaturaMax - temperaturaAtual)
+                    /
+                    (temperaturaMax - temperaturaMin)
+                )
+                * graficoAltura;
+
+
+            ctx.quadraticCurveTo(
+                xAnterior,
+                yAnterior,
+                xAtual,
+                yAtual
+            );
+        }
+
+
+        ctx.stroke();
+    }
 
 
     // ============================================================
@@ -273,14 +458,19 @@
 
     function desenharGrafico() {
 
-        const largura = canvas.clientWidth;
-        const altura = canvas.clientHeight;
+        const largura =
+            canvas.clientWidth;
 
-        ctx.clearRect(0, 0, largura, altura);
+        const altura =
+            canvas.clientHeight;
 
-        // --------------------------------------------------------
-        // Margens
-        // --------------------------------------------------------
+        ctx.clearRect(
+            0,
+            0,
+            largura,
+            altura
+        );
+
 
         const margemEsquerda = 65;
         const margemDireita = 25;
@@ -288,26 +478,37 @@
         const margemInferior = 50;
 
         const graficoLargura =
-            largura - margemEsquerda - margemDireita;
+            largura -
+            margemEsquerda -
+            margemDireita;
 
         const graficoAltura =
-            altura - margemSuperior - margemInferior;
+            altura -
+            margemSuperior -
+            margemInferior;
 
-
-        // --------------------------------------------------------
-        // Verificar dados
-        // --------------------------------------------------------
 
         const todosOsDados = [
             ...dadosCapsula1,
             ...dadosCapsula2
         ];
 
-        if (todosOsDados.length === 0) {
+
+        // --------------------------------------------------------
+        // Sem dados
+        // --------------------------------------------------------
+
+        if (
+            todosOsDados.length === 0
+        ) {
 
             ctx.fillStyle = "#777";
-            ctx.font = "16px Arial";
-            ctx.textAlign = "center";
+
+            ctx.font =
+                "16px Arial";
+
+            ctx.textAlign =
+                "center";
 
             ctx.fillText(
                 "Aguardando dados do ESP32...",
@@ -320,12 +521,31 @@
 
 
         // --------------------------------------------------------
-        // Determinar temperatura mínima e máxima
+        // Temperaturas
         // --------------------------------------------------------
 
-        let temperaturas = todosOsDados.map(
-            dado => dado.temperatura
-        );
+        let temperaturas =
+            todosOsDados.map(
+                dado => dado.temperatura
+            );
+
+
+        if (
+            temperaturaAtual1 !== null
+        ) {
+            temperaturas.push(
+                temperaturaAtual1
+            );
+        }
+
+        if (
+            temperaturaAtual2 !== null
+        ) {
+            temperaturas.push(
+                temperaturaAtual2
+            );
+        }
+
 
         let temperaturaMin =
             Math.min(...temperaturas);
@@ -334,9 +554,10 @@
             Math.max(...temperaturas);
 
 
-        // Dar uma margem para o gráfico
-
-        if (temperaturaMin === temperaturaMax) {
+        if (
+            temperaturaMin ===
+            temperaturaMax
+        ) {
 
             temperaturaMin -= 1;
             temperaturaMax += 1;
@@ -345,40 +566,58 @@
 
             temperaturaMin -= 1;
             temperaturaMax += 1;
-
         }
 
 
         // --------------------------------------------------------
-        // Determinar tempo máximo
+        // Tempo
         // --------------------------------------------------------
 
-        let tempos = todosOsDados.map(
-            dado => dado.tempo
-        );
+        let tempos =
+            todosOsDados.map(
+                dado => dado.tempo
+            );
+
 
         let tempoMax =
             Math.max(...tempos);
 
-        if (tempoMax <= 0) {
-            tempoMax = 1;
+
+        /*
+         * Mantém pelo menos alguns segundos
+         * de espaço visual.
+         */
+
+        if (tempoMax < 5) {
+            tempoMax = 5;
         }
 
 
         // --------------------------------------------------------
-        // Grade horizontal
+        // GRADE
         // --------------------------------------------------------
 
-        ctx.strokeStyle = "#dddddd";
+        ctx.strokeStyle =
+            "#dddddd";
+
         ctx.lineWidth = 1;
 
         const quantidadeLinhas = 6;
 
-        for (let i = 0; i <= quantidadeLinhas; i++) {
+
+        for (
+            let i = 0;
+            i <= quantidadeLinhas;
+            i++
+        ) {
 
             const y =
                 margemSuperior +
-                (graficoAltura / quantidadeLinhas) * i;
+                (
+                    graficoAltura /
+                    quantidadeLinhas
+                ) * i;
+
 
             ctx.beginPath();
 
@@ -395,19 +634,24 @@
             ctx.stroke();
 
 
-            // Valor da temperatura
-
             const valor =
                 temperaturaMax -
                 (
-                    (temperaturaMax - temperaturaMin)
-                    * i
-                    / quantidadeLinhas
+                    (temperaturaMax -
+                    temperaturaMin)
+                    * i /
+                    quantidadeLinhas
                 );
 
-            ctx.fillStyle = "#555";
-            ctx.font = "12px Arial";
-            ctx.textAlign = "right";
+
+            ctx.fillStyle =
+                "#555";
+
+            ctx.font =
+                "12px Arial";
+
+            ctx.textAlign =
+                "right";
 
             ctx.fillText(
                 valor.toFixed(1) + " °C",
@@ -418,10 +662,12 @@
 
 
         // --------------------------------------------------------
-        // Eixo Y
+        // EIXO Y
         // --------------------------------------------------------
 
-        ctx.strokeStyle = "#333";
+        ctx.strokeStyle =
+            "#333";
+
         ctx.lineWidth = 2;
 
         ctx.beginPath();
@@ -440,7 +686,7 @@
 
 
         // --------------------------------------------------------
-        // Eixo X
+        // EIXO X
         // --------------------------------------------------------
 
         ctx.beginPath();
@@ -459,81 +705,93 @@
 
 
         // --------------------------------------------------------
-        // Função para desenhar uma linha
+        // TEMPO ATUAL
         // --------------------------------------------------------
 
-        function desenharLinha(dados) {
+        let tempoAtual = 0;
 
-            if (dados.length === 0) {
-                return;
-            }
+        if (tempoInicial !== null) {
 
-            ctx.beginPath();
-
-            dados.forEach((dado, indice) => {
-
-                const x =
-                    margemEsquerda +
-                    (dado.tempo / tempoMax)
-                    * graficoLargura;
-
-                const y =
-                    margemSuperior +
-                    (
-                        (temperaturaMax - dado.temperatura)
-                        /
-                        (temperaturaMax - temperaturaMin)
-                    )
-                    * graficoAltura;
-
-                if (indice === 0) {
-                    ctx.moveTo(x, y);
-                } else {
-                    ctx.lineTo(x, y);
-                }
-
-            });
-
-            ctx.stroke();
+            tempoAtual =
+                (
+                    performance.now() / 1000
+                ) - tempoInicial;
         }
 
 
         // --------------------------------------------------------
-        // Linha da cápsula 1
+        // CÁPSULA 1
         // --------------------------------------------------------
 
-        if (dadosCapsula1.length > 0) {
+        if (
+            dadosCapsula1.length > 0
+        ) {
 
-            ctx.strokeStyle = "#0A2E5C";
+            ctx.strokeStyle =
+                "#0A2E5C";
+
             ctx.lineWidth = 3;
 
-            desenharLinha(dadosCapsula1);
+            desenharLinhaSuavizada(
+                dadosCapsula1,
+                temperaturaAtual1,
+                tempoAtual,
+                tempoMax,
+                temperaturaMin,
+                temperaturaMax,
+                margemEsquerda,
+                margemSuperior,
+                graficoLargura,
+                graficoAltura
+            );
         }
 
 
         // --------------------------------------------------------
-        // Linha da cápsula 2
+        // CÁPSULA 2
         // --------------------------------------------------------
 
-        if (dadosCapsula2.length > 0) {
+        if (
+            dadosCapsula2.length > 0
+        ) {
 
-            ctx.strokeStyle = "#2EC4B6";
+            ctx.strokeStyle =
+                "#2EC4B6";
+
             ctx.lineWidth = 3;
 
-            desenharLinha(dadosCapsula2);
+            desenharLinhaSuavizada(
+                dadosCapsula2,
+                temperaturaAtual2,
+                tempoAtual,
+                tempoMax,
+                temperaturaMin,
+                temperaturaMax,
+                margemEsquerda,
+                margemSuperior,
+                graficoLargura,
+                graficoAltura
+            );
         }
 
 
         // --------------------------------------------------------
-        // Legenda
+        // LEGENDA
         // --------------------------------------------------------
 
-        ctx.font = "14px Arial";
-        ctx.textAlign = "left";
+        ctx.font =
+            "14px Arial";
 
-        if (dadosCapsula1.length > 0) {
+        ctx.textAlign =
+            "left";
 
-            ctx.fillStyle = "#0A2E5C";
+
+        if (
+            dadosCapsula1.length > 0
+        ) {
+
+            ctx.fillStyle =
+                "#0A2E5C";
 
             ctx.fillRect(
                 margemEsquerda,
@@ -542,7 +800,8 @@
                 4
             );
 
-            ctx.fillStyle = "#333";
+            ctx.fillStyle =
+                "#333";
 
             ctx.fillText(
                 "Cápsula 1",
@@ -552,9 +811,12 @@
         }
 
 
-        if (dadosCapsula2.length > 0) {
+        if (
+            dadosCapsula2.length > 0
+        ) {
 
-            ctx.fillStyle = "#2EC4B6";
+            ctx.fillStyle =
+                "#2EC4B6";
 
             ctx.fillRect(
                 margemEsquerda + 110,
@@ -563,7 +825,8 @@
                 4
             );
 
-            ctx.fillStyle = "#333";
+            ctx.fillStyle =
+                "#333";
 
             ctx.fillText(
                 "Cápsula 2",
@@ -575,7 +838,7 @@
 
 
     // ============================================================
-    // RECEBER DADOS DO ESP32
+    // RECEBER DADOS
     // ============================================================
 
     function receberTemperatura(dados) {
@@ -586,12 +849,9 @@
         );
 
 
-        // --------------------------------------------------------
-        // Verificar temperatura
-        // --------------------------------------------------------
-
         if (
-            dados.temperatura === undefined ||
+            dados.temperatura ===
+            undefined ||
             dados.temperatura === null
         ) {
             return;
@@ -602,11 +862,19 @@
             Number(dados.temperatura);
 
 
+        if (
+            !Number.isFinite(temperatura)
+        ) {
+            return;
+        }
+
+
         // --------------------------------------------------------
-        // Tempo enviado pelo ESP32
+        // TEMPO
         // --------------------------------------------------------
 
         let tempo;
+
 
         if (
             dados.tempo !== undefined &&
@@ -623,11 +891,9 @@
         }
 
 
-        // --------------------------------------------------------
-        // Definir tempo inicial
-        // --------------------------------------------------------
-
-        if (tempoInicial === null) {
+        if (
+            tempoInicial === null
+        ) {
 
             tempoInicial = tempo;
         }
@@ -638,18 +904,35 @@
 
 
         // --------------------------------------------------------
-        // Atualizar temperatura exibida
+        // NOVO ALVO DA ANIMAÇÃO
         // --------------------------------------------------------
 
-        ultimaTemperatura1 =
+        temperaturaAlvo1 =
             temperatura;
 
-        temperatura1Elemento.textContent =
-            temperatura.toFixed(2) + " °C";
+
+        // Primeira leitura
+
+        if (
+            temperaturaAtual1 === null
+        ) {
+
+            temperaturaAtual1 =
+                temperatura;
+        }
 
 
         // --------------------------------------------------------
-        // Registrar somente se o teste estiver executando
+        // TEMPERATURA NA TELA
+        // --------------------------------------------------------
+
+        temperatura1Elemento.textContent =
+            temperatura.toFixed(2) +
+            " °C";
+
+
+        // --------------------------------------------------------
+        // REGISTRAR DADO REAL
         // --------------------------------------------------------
 
         if (executando) {
@@ -661,9 +944,51 @@
                 temperatura: temperatura
 
             });
-
-            desenharGrafico();
         }
+
+
+        ultimoTempo1 =
+            tempo;
+    }
+
+
+    // ============================================================
+    // ANIMAÇÃO CONTÍNUA
+    // ============================================================
+
+    function animar() {
+
+        /*
+         * O valor visual se aproxima continuamente
+         * do último valor REAL recebido pelo sensor.
+         */
+
+        temperaturaAtual1 =
+            aproximar(
+                temperaturaAtual1,
+                temperaturaAlvo1
+            );
+
+
+        temperaturaAtual2 =
+            aproximar(
+                temperaturaAtual2,
+                temperaturaAlvo2
+            );
+
+
+        desenharGrafico();
+
+
+        /*
+         * requestAnimationFrame normalmente acompanha
+         * a taxa de atualização do monitor, deixando
+         * o movimento visual muito mais fluido.
+         */
+
+        requestAnimationFrame(
+            animar
+        );
     }
 
 
@@ -676,14 +1001,9 @@
             ? "wss:"
             : "ws:";
 
+
     const enderecoWebSocket =
         `${protocolo}//${location.host}/api/ws`;
-
-
-    console.log(
-        "Conectando ao WebSocket:",
-        enderecoWebSocket
-    );
 
 
     let ws;
@@ -691,102 +1011,91 @@
 
     function conectarWebSocket() {
 
-        ws = new WebSocket(
-            enderecoWebSocket
-        );
-
-
-        // --------------------------------------------------------
-        // Conectado
-        // --------------------------------------------------------
-
-        ws.onopen = function () {
-
-            console.log(
-                "WebSocket conectado."
+        ws =
+            new WebSocket(
+                enderecoWebSocket
             );
 
-            statusTexto.textContent =
-                "Conectado ao ESP32/Cloudflare.";
 
-            statusBox.style.borderLeft =
-                "5px solid #2EC4B6";
-        };
+        ws.onopen =
+            function () {
 
-
-        // --------------------------------------------------------
-        // Recebendo mensagem
-        // --------------------------------------------------------
-
-        ws.onmessage = function (event) {
-
-            try {
-
-                const dados =
-                    JSON.parse(event.data);
-
-                receberTemperatura(
-                    dados
+                console.log(
+                    "WebSocket conectado."
                 );
 
-            } catch (erro) {
+                statusTexto.textContent =
+                    "Conectado ao ESP32/Cloudflare.";
+
+                statusBox.style.borderLeft =
+                    "5px solid #2EC4B6";
+            };
+
+
+        ws.onmessage =
+            function (event) {
+
+                try {
+
+                    const dados =
+                        JSON.parse(
+                            event.data
+                        );
+
+                    receberTemperatura(
+                        dados
+                    );
+
+                } catch (erro) {
+
+                    console.error(
+                        "Erro ao interpretar dados:",
+                        erro
+                    );
+                }
+            };
+
+
+        ws.onerror =
+            function (erro) {
 
                 console.error(
-                    "Erro ao interpretar dados:",
+                    "Erro no WebSocket:",
                     erro
                 );
-            }
-        };
+
+                statusTexto.textContent =
+                    "Erro na conexão com o servidor.";
+
+                statusBox.style.borderLeft =
+                    "5px solid #d9534f";
+            };
 
 
-        // --------------------------------------------------------
-        // Erro
-        // --------------------------------------------------------
+        ws.onclose =
+            function () {
 
-        ws.onerror = function (erro) {
+                console.log(
+                    "WebSocket desconectado."
+                );
 
-            console.error(
-                "Erro no WebSocket:",
-                erro
-            );
+                statusTexto.textContent =
+                    "Conexão encerrada. Tentando reconectar...";
 
-            statusTexto.textContent =
-                "Erro na conexão com o servidor.";
-
-            statusBox.style.borderLeft =
-                "5px solid #d9534f";
-        };
+                statusBox.style.borderLeft =
+                    "5px solid #999";
 
 
-        // --------------------------------------------------------
-        // Conexão fechada
-        // --------------------------------------------------------
-
-        ws.onclose = function () {
-
-            console.log(
-                "WebSocket desconectado."
-            );
-
-            statusTexto.textContent =
-                "Conexão encerrada. Tentando reconectar...";
-
-            statusBox.style.borderLeft =
-                "5px solid #999";
-
-
-            // Tentar reconectar depois de 3 segundos
-
-            setTimeout(
-                conectarWebSocket,
-                3000
-            );
-        };
+                setTimeout(
+                    conectarWebSocket,
+                    3000
+                );
+            };
     }
 
 
     // ============================================================
-    // BOTÃO INICIAR
+    // INICIAR TESTE
     // ============================================================
 
     botaoIniciar.addEventListener(
@@ -798,8 +1107,14 @@
 
             tempoInicial = null;
 
-            ultimaTemperatura1 = null;
-            ultimaTemperatura2 = null;
+            temperaturaAtual1 = null;
+            temperaturaAlvo1 = null;
+
+            temperaturaAtual2 = null;
+            temperaturaAlvo2 = null;
+
+            ultimoTempo1 = 0;
+            ultimoTempo2 = 0;
 
             temperatura1Elemento.textContent =
                 "-- °C";
@@ -809,10 +1124,14 @@
 
             executando = true;
 
-            botaoIniciar.disabled = true;
-            botaoParar.disabled = false;
+            botaoIniciar.disabled =
+                true;
+
+            botaoParar.disabled =
+                false;
 
             desenharGrafico();
+
 
             console.log(
                 "Teste iniciado."
@@ -822,7 +1141,7 @@
 
 
     // ============================================================
-    // BOTÃO PARAR
+    // PARAR TESTE
     // ============================================================
 
     botaoParar.addEventListener(
@@ -831,17 +1150,23 @@
 
             executando = false;
 
-            botaoIniciar.disabled = false;
-            botaoParar.disabled = true;
+            botaoIniciar.disabled =
+                false;
+
+            botaoParar.disabled =
+                true;
+
 
             console.log(
                 "Teste parado."
             );
 
+
             console.log(
                 "Dados da cápsula 1:",
                 dadosCapsula1
             );
+
 
             console.log(
                 "Dados da cápsula 2:",
@@ -858,6 +1183,8 @@
     ajustarCanvas();
 
     conectarWebSocket();
+
+    animar();
 
 </script>
 
