@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Apresentação — Efeito Estufa</title>
+
+    <link rel="stylesheet" href="style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+    <header>
+        <h1>O "Efeito Estufa" na Sala de Aula</h1>
+        <p>Área de apresentação — Experimento</p>
+    </header>
+
+    <main>
+
+        <section class="grafico-container">
+
+            <h2>Temperatura em tempo real</h2>
+
+            <div class="temperaturas">
+                <div>
+                    <span>Cápsula 1</span>
+                    <strong id="temp1">-- °C</strong>
+                </div>
+
+                <div>
+                    <span>Cápsula 2</span>
+                    <strong id="temp2">-- °C</strong>
+                </div>
+            </div>
+
+            <div class="grafico">
+                <canvas id="graficoTemperatura"></canvas>
+            </div>
+
+            <div class="controles">
+                <button id="iniciar">Iniciar teste</button>
+                <button id="parar">Parar</button>
+            </div>
+
+            <p id="status">Aguardando início do experimento...</p>
+
+        </section>
+
+    </main>
+
+    <script src="app.js"></script>
+
+</body>
+</html>
