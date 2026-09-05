@@ -226,7 +226,7 @@
 
 
     // ============================================================
-    // ESTADO DO EXPERIMENTO
+    // DADOS
     // ============================================================
 
     let executando = false;
@@ -236,30 +236,21 @@
 
     let tempoInicial = null;
 
-
-    // ============================================================
-    // VALORES PARA ANIMAÇÃO
-    // ============================================================
-
     let temperaturaAtual1 = null;
     let temperaturaAlvo1 = null;
 
     let temperaturaAtual2 = null;
     let temperaturaAlvo2 = null;
 
+    // Último tempo REAL recebido do ESP32
     let ultimoTempo1 = 0;
     let ultimoTempo2 = 0;
 
-
-    // Velocidade da interpolação visual.
-    // Quanto maior, mais rapidamente a linha acompanha
-    // o novo valor recebido.
-
-    const velocidadeAnimacao = 0.12;
+    const velocidadeAnimacao = 0.18;
 
 
     // ============================================================
-    // CONFIGURAÇÃO DO CANVAS
+    // CANVAS
     // ============================================================
 
     function ajustarCanvas() {
@@ -288,7 +279,6 @@
         desenharGrafico();
     }
 
-
     window.addEventListener(
         "resize",
         ajustarCanvas
@@ -309,16 +299,14 @@
             return valorAtual;
         }
 
-        return (
-            valorAtual +
+        return valorAtual +
             (valorAlvo - valorAtual)
-            * velocidadeAnimacao
-        );
+            * velocidadeAnimacao;
     }
 
 
     // ============================================================
-    // DESENHAR LINHA SUAVIZADA
+    // DESENHAR CURVA
     // ============================================================
 
     function desenharLinhaSuavizada(
@@ -338,28 +326,38 @@
             return;
         }
 
-        /*
-         * Para manter a curva visualmente suave,
-         * usamos uma curva quadrática entre os pontos.
-         */
+        function converterX(tempo) {
 
-        ctx.beginPath();
+            return margemEsquerda +
+                (tempo / tempoMax) *
+                graficoLargura;
+        }
+
+        function converterY(temperatura) {
+
+            return margemSuperior +
+                (
+                    (temperaturaMax - temperatura)
+                    /
+                    (temperaturaMax - temperaturaMin)
+                ) *
+                graficoAltura;
+        }
+
+
+        // --------------------------------------------------------
+        // Primeiro ponto
+        // --------------------------------------------------------
 
         let primeiro = dados[0];
 
         let xAnterior =
-            margemEsquerda +
-            (primeiro.tempo / tempoMax)
-            * graficoLargura;
+            converterX(primeiro.tempo);
 
         let yAnterior =
-            margemSuperior +
-            (
-                (temperaturaMax - primeiro.temperatura)
-                /
-                (temperaturaMax - temperaturaMin)
-            )
-            * graficoAltura;
+            converterY(primeiro.temperatura);
+
+        ctx.beginPath();
 
         ctx.moveTo(
             xAnterior,
@@ -367,31 +365,24 @@
         );
 
 
+        // --------------------------------------------------------
+        // Curva entre os pontos reais
+        // --------------------------------------------------------
+
         for (
             let i = 1;
             i < dados.length;
             i++
         ) {
 
-            const pontoAnterior =
-                dados[i - 1];
-
             const ponto =
                 dados[i];
 
             const x =
-                margemEsquerda +
-                (ponto.tempo / tempoMax)
-                * graficoLargura;
+                converterX(ponto.tempo);
 
             const y =
-                margemSuperior +
-                (
-                    (temperaturaMax - ponto.temperatura)
-                    /
-                    (temperaturaMax - temperaturaMin)
-                )
-                * graficoAltura;
+                converterY(ponto.temperatura);
 
 
             const meioX =
@@ -414,46 +405,52 @@
         }
 
 
-        /*
-         * Adicionar o valor que está sendo
-         * interpolado neste momento.
-         */
+        // --------------------------------------------------------
+        // Último trecho até a última leitura real
+        // --------------------------------------------------------
 
         if (
             temperaturaAtual !== null &&
-            tempoAtual >= 0
+            dados.length > 0
         ) {
 
+            const ultimoDado =
+                dados[dados.length - 1];
+
             const xAtual =
-                margemEsquerda +
-                (tempoAtual / tempoMax)
-                * graficoLargura;
+                converterX(tempoAtual);
 
             const yAtual =
-                margemSuperior +
-                (
-                    (temperaturaMax - temperaturaAtual)
-                    /
-                    (temperaturaMax - temperaturaMin)
-                )
-                * graficoAltura;
+                converterY(temperaturaAtual);
 
 
-            ctx.quadraticCurveTo(
-                xAnterior,
-                yAnterior,
-                xAtual,
-                yAtual
-            );
+            /*
+             * Só desenha o trecho se o tempo atual
+             * for realmente posterior ao último dado.
+             *
+             * Isso evita a linha horizontal que apareceu
+             * anteriormente.
+             */
+
+            if (
+                tempoAtual >= ultimoDado.tempo
+            ) {
+
+                ctx.quadraticCurveTo(
+                    xAnterior,
+                    yAnterior,
+                    xAtual,
+                    yAtual
+                );
+            }
         }
-
 
         ctx.stroke();
     }
 
 
     // ============================================================
-    // DESENHAR GRÁFICO
+    // GRÁFICO
     // ============================================================
 
     function desenharGrafico() {
@@ -472,10 +469,10 @@
         );
 
 
-        const margemEsquerda = 65;
+        const margemEsquerda = 70;
         const margemDireita = 25;
         const margemSuperior = 30;
-        const margemInferior = 50;
+        const margemInferior = 60;
 
         const graficoLargura =
             largura -
@@ -498,9 +495,7 @@
         // Sem dados
         // --------------------------------------------------------
 
-        if (
-            todosOsDados.length === 0
-        ) {
+        if (todosOsDados.length === 0) {
 
             ctx.fillStyle = "#777";
 
@@ -521,7 +516,7 @@
 
 
         // --------------------------------------------------------
-        // Temperaturas
+        // TEMPERATURAS
         // --------------------------------------------------------
 
         let temperaturas =
@@ -530,17 +525,13 @@
             );
 
 
-        if (
-            temperaturaAtual1 !== null
-        ) {
+        if (temperaturaAtual1 !== null) {
             temperaturas.push(
                 temperaturaAtual1
             );
         }
 
-        if (
-            temperaturaAtual2 !== null
-        ) {
+        if (temperaturaAtual2 !== null) {
             temperaturas.push(
                 temperaturaAtual2
             );
@@ -555,8 +546,7 @@
 
 
         if (
-            temperaturaMin ===
-            temperaturaMax
+            temperaturaMin === temperaturaMax
         ) {
 
             temperaturaMin -= 1;
@@ -570,7 +560,7 @@
 
 
         // --------------------------------------------------------
-        // Tempo
+        // TEMPO
         // --------------------------------------------------------
 
         let tempos =
@@ -584,8 +574,7 @@
 
 
         /*
-         * Mantém pelo menos alguns segundos
-         * de espaço visual.
+         * Pelo menos 5 segundos de largura.
          */
 
         if (tempoMax < 5) {
@@ -594,7 +583,7 @@
 
 
         // --------------------------------------------------------
-        // GRADE
+        // GRADE HORIZONTAL
         // --------------------------------------------------------
 
         ctx.strokeStyle =
@@ -661,9 +650,9 @@
         }
 
 
-        // --------------------------------------------------------
+        // ========================================================
         // EIXO Y
-        // --------------------------------------------------------
+        // ========================================================
 
         ctx.strokeStyle =
             "#333";
@@ -685,9 +674,9 @@
         ctx.stroke();
 
 
-        // --------------------------------------------------------
+        // ========================================================
         // EIXO X
-        // --------------------------------------------------------
+        // ========================================================
 
         ctx.beginPath();
 
@@ -704,24 +693,112 @@
         ctx.stroke();
 
 
-        // --------------------------------------------------------
-        // TEMPO ATUAL
-        // --------------------------------------------------------
+        // ========================================================
+        // MARCAÇÕES DE TEMPO NO EIXO X
+        // ========================================================
 
-        let tempoAtual = 0;
+        /*
+         * Define automaticamente um intervalo adequado.
+         */
 
-        if (tempoInicial !== null) {
+        let intervaloTempo = 5;
 
-            tempoAtual =
+        if (tempoMax > 60) {
+            intervaloTempo = 10;
+        }
+
+        if (tempoMax > 180) {
+            intervaloTempo = 30;
+        }
+
+        if (tempoMax > 600) {
+            intervaloTempo = 60;
+        }
+
+
+        ctx.fillStyle =
+            "#555";
+
+        ctx.font =
+            "12px Arial";
+
+        ctx.textAlign =
+            "center";
+
+
+        for (
+            let tempo = 0;
+            tempo <= tempoMax;
+            tempo += intervaloTempo
+        ) {
+
+            const x =
+                margemEsquerda +
                 (
-                    performance.now() / 1000
-                ) - tempoInicial;
+                    tempo / tempoMax
+                ) *
+                graficoLargura;
+
+
+            // Pequena marca no eixo
+
+            ctx.strokeStyle =
+                "#333";
+
+            ctx.lineWidth = 1;
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                x,
+                altura - margemInferior
+            );
+
+            ctx.lineTo(
+                x,
+                altura - margemInferior + 6
+            );
+
+            ctx.stroke();
+
+
+            // Texto
+
+            ctx.fillStyle =
+                "#555";
+
+            ctx.fillText(
+                tempo + " s",
+                x,
+                altura - margemInferior + 22
+            );
         }
 
 
         // --------------------------------------------------------
-        // CÁPSULA 1
+        // TÍTULO DO EIXO X
         // --------------------------------------------------------
+
+        ctx.fillStyle =
+            "#333";
+
+        ctx.font =
+            "13px Arial";
+
+        ctx.textAlign =
+            "center";
+
+        ctx.fillText(
+            "Tempo decorrido",
+            margemEsquerda +
+            graficoLargura / 2,
+            altura - 12
+        );
+
+
+        // ========================================================
+        // CÁPSULA 1
+        // ========================================================
 
         if (
             dadosCapsula1.length > 0
@@ -735,7 +812,7 @@
             desenharLinhaSuavizada(
                 dadosCapsula1,
                 temperaturaAtual1,
-                tempoAtual,
+                ultimoTempo1,
                 tempoMax,
                 temperaturaMin,
                 temperaturaMax,
@@ -747,9 +824,9 @@
         }
 
 
-        // --------------------------------------------------------
+        // ========================================================
         // CÁPSULA 2
-        // --------------------------------------------------------
+        // ========================================================
 
         if (
             dadosCapsula2.length > 0
@@ -763,7 +840,7 @@
             desenharLinhaSuavizada(
                 dadosCapsula2,
                 temperaturaAtual2,
-                tempoAtual,
+                ultimoTempo2,
                 tempoMax,
                 temperaturaMin,
                 temperaturaMax,
@@ -775,9 +852,9 @@
         }
 
 
-        // --------------------------------------------------------
+        // ========================================================
         // LEGENDA
-        // --------------------------------------------------------
+        // ========================================================
 
         ctx.font =
             "14px Arial";
@@ -795,7 +872,7 @@
 
             ctx.fillRect(
                 margemEsquerda,
-                altura - 30,
+                altura - 35,
                 15,
                 4
             );
@@ -806,7 +883,7 @@
             ctx.fillText(
                 "Cápsula 1",
                 margemEsquerda + 22,
-                altura - 25
+                altura - 30
             );
         }
 
@@ -820,7 +897,7 @@
 
             ctx.fillRect(
                 margemEsquerda + 110,
-                altura - 30,
+                altura - 35,
                 15,
                 4
             );
@@ -831,14 +908,14 @@
             ctx.fillText(
                 "Cápsula 2",
                 margemEsquerda + 132,
-                altura - 25
+                altura - 30
             );
         }
     }
 
 
     // ============================================================
-    // RECEBER DADOS
+    // RECEBER DADOS DO ESP32
     // ============================================================
 
     function receberTemperatura(dados) {
@@ -850,8 +927,7 @@
 
 
         if (
-            dados.temperatura ===
-            undefined ||
+            dados.temperatura === undefined ||
             dados.temperatura === null
         ) {
             return;
@@ -870,11 +946,10 @@
 
 
         // --------------------------------------------------------
-        // TEMPO
+        // TEMPO DO ESP32
         // --------------------------------------------------------
 
         let tempo;
-
 
         if (
             dados.tempo !== undefined &&
@@ -886,32 +961,37 @@
 
         } else {
 
-            tempo =
-                performance.now() / 1000;
+            return;
         }
 
 
-        if (
-            tempoInicial === null
-        ) {
+        // --------------------------------------------------------
+        // PRIMEIRA LEITURA
+        // --------------------------------------------------------
 
-            tempoInicial = tempo;
+        if (tempoInicial === null) {
+
+            tempoInicial =
+                tempo;
         }
 
+
+        /*
+         * Agora todos os pontos ficam relacionados
+         * ao relógio do próprio ESP32.
+         */
 
         tempo =
             tempo - tempoInicial;
 
 
         // --------------------------------------------------------
-        // NOVO ALVO DA ANIMAÇÃO
+        // ATUALIZAR ALVO
         // --------------------------------------------------------
 
         temperaturaAlvo1 =
             temperatura;
 
-
-        // Primeira leitura
 
         if (
             temperaturaAtual1 === null
@@ -920,6 +1000,14 @@
             temperaturaAtual1 =
                 temperatura;
         }
+
+
+        // --------------------------------------------------------
+        // TEMPO REAL DA ÚLTIMA LEITURA
+        // --------------------------------------------------------
+
+        ultimoTempo1 =
+            tempo;
 
 
         // --------------------------------------------------------
@@ -932,7 +1020,7 @@
 
 
         // --------------------------------------------------------
-        // REGISTRAR DADO REAL
+        // SALVAR DADO
         // --------------------------------------------------------
 
         if (executando) {
@@ -945,23 +1033,14 @@
 
             });
         }
-
-
-        ultimoTempo1 =
-            tempo;
     }
 
 
     // ============================================================
-    // ANIMAÇÃO CONTÍNUA
+    // ANIMAÇÃO
     // ============================================================
 
     function animar() {
-
-        /*
-         * O valor visual se aproxima continuamente
-         * do último valor REAL recebido pelo sensor.
-         */
 
         temperaturaAtual1 =
             aproximar(
@@ -979,12 +1058,6 @@
 
         desenharGrafico();
 
-
-        /*
-         * requestAnimationFrame normalmente acompanha
-         * a taxa de atualização do monitor, deixando
-         * o movimento visual muito mais fluido.
-         */
 
         requestAnimationFrame(
             animar
@@ -1095,7 +1168,7 @@
 
 
     // ============================================================
-    // INICIAR TESTE
+    // INICIAR
     // ============================================================
 
     botaoIniciar.addEventListener(
@@ -1132,7 +1205,6 @@
 
             desenharGrafico();
 
-
             console.log(
                 "Teste iniciado."
             );
@@ -1141,7 +1213,7 @@
 
 
     // ============================================================
-    // PARAR TESTE
+    // PARAR
     // ============================================================
 
     botaoParar.addEventListener(
@@ -1156,21 +1228,13 @@
             botaoParar.disabled =
                 true;
 
-
             console.log(
                 "Teste parado."
             );
 
-
             console.log(
                 "Dados da cápsula 1:",
                 dadosCapsula1
-            );
-
-
-            console.log(
-                "Dados da cápsula 2:",
-                dadosCapsula2
             );
         }
     );
