@@ -1,101 +1,23 @@
-const ctx = document.getElementById("graficoTemperatura");
+const canvas = document.getElementById("graficoTemperatura");
+const ctx = canvas.getContext("2d");
 
-const grafico = new Chart(ctx, {
-    type: "line",
-
-    data: {
-        labels: [],
-        datasets: [
-            {
-                label: "Cápsula 1",
-                data: [],
-                tension: 0.3
-            },
-            {
-                label: "Cápsula 2",
-                data: [],
-                tension: 0.3
-            }
-        ]
-    },
-
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-
-        animation: false,
-
-        scales: {
-            x: {
-                title: {
-                    display: true,
-                    text: "Tempo (s)"
-                }
-            },
-
-            y: {
-                title: {
-                    display: true,
-                    text: "Temperatura (°C)"
-                }
-            }
-        }
-    }
-});
-
-let intervalo = null;
+let dados1 = [];
+let dados2 = [];
 let tempo = 0;
+let intervalo = null;
 
-let temperatura1 = 25;
-let temperatura2 = 25;
-
-function adicionarDados() {
-
-    tempo++;
-
-    // Simulação temporária das temperaturas
-    temperatura1 += 0.08 + (Math.random() - 0.5) * 0.08;
-    temperatura2 += 0.04 + (Math.random() - 0.5) * 0.08;
-
-    grafico.data.labels.push(tempo);
-
-    grafico.data.datasets[0].data.push(temperatura1);
-    grafico.data.datasets[1].data.push(temperatura2);
-
-    // Mantém somente os últimos 60 segundos visíveis
-    if (grafico.data.labels.length > 60) {
-        grafico.data.labels.shift();
-        grafico.data.datasets[0].data.shift();
-        grafico.data.datasets[1].data.shift();
-    }
-
-    grafico.update();
-
-    document.getElementById("temp1").textContent =
-        temperatura1.toFixed(2) + " °C";
-
-    document.getElementById("temp2").textContent =
-        temperatura2.toFixed(2) + " °C";
+function ajustarCanvas() {
+    canvas.width = canvas.clientWidth;
+    canvas.height = canvas.clientHeight;
+    desenharGrafico();
 }
 
-document.getElementById("iniciar").addEventListener("click", () => {
+function desenharGrafico() {
+    const largura = canvas.width;
+    const altura = canvas.height;
 
-    if (intervalo !== null) {
-        return;
-    }
+    ctx.clearRect(0, 0, largura, altura);
 
-    document.getElementById("status").textContent =
-        "Experimento em andamento...";
-
-    intervalo = setInterval(adicionarDados, 1000);
-});
-
-document.getElementById("parar").addEventListener("click", () => {
-
-    clearInterval(intervalo);
-
-    intervalo = null;
-
-    document.getElementById("status").textContent =
-        "Experimento finalizado.";
-});
+    // Fundo
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0,
