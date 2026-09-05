@@ -5,47 +5,94 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: #f4f7fa;
-    color: #17212b;
+    background: #f4f6f8;
+    color: #111827;
 }
 
 header {
-    padding: 40px 20px;
-    text-align: center;
-    background: #0a2e5c;
+    background: #0A2E5C;
     color: white;
+    text-align: center;
+    padding: 35px 20px;
 }
 
 header h1 {
     margin: 0 0 10px;
 }
 
-main {
-    max-width: 1000px;
-    margin: 40px auto;
-    padding: 20px;
+header p {
+    margin: 0;
 }
 
-.apresentacao {
+main {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+.grafico-container {
     background: white;
     padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    border-radius: 14px;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
 }
 
-.apresentacao a {
-    display: inline-block;
-    margin-top: 20px;
-    padding: 12px 20px;
+.grafico-container h2 {
+    margin-top: 0;
+}
 
-    background: #2ec4b6;
-    color: white;
+.temperaturas {
+    display: flex;
+    gap: 20px;
+    margin: 25px 0;
+}
 
-    text-decoration: none;
+.temperaturas div {
+    flex: 1;
+    background: #f4f6f8;
+    padding: 18px;
+    border-radius: 10px;
+}
+
+.temperaturas span {
+    display: block;
+    margin-bottom: 8px;
+}
+
+.temperaturas strong {
+    font-size: 28px;
+}
+
+.grafico {
+    position: relative;
+    height: 500px;
+}
+
+.controles {
+    margin-top: 25px;
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    border: none;
+    padding: 12px 22px;
     border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
 }
 
-footer {
-    text-align: center;
-    padding: 30px;
+#iniciar {
+    background: #2EC4B6;
+    color: white;
+}
+
+#parar {
+    background: #0A2E5C;
+    color: white;
+}
+
+#status {
+    margin-top: 15px;
+    color: #555;
 }
