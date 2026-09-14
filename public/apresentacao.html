@@ -751,7 +751,7 @@
         }
 
 
-        #iniciar {
+        #iniciar, #iniciar2 {
 
             color: white;
 
@@ -768,7 +768,7 @@
         }
 
 
-        #parar {
+        #parar, #parar2 {
 
             color:
                 #b42318;
@@ -781,6 +781,29 @@
                 #ffd6d2;
         }
 
+
+        #reprise {
+            color: white;
+            background: linear-gradient(135deg, #0A2E5C, #4A90D9);
+            box-shadow: 0 7px 18px rgba(10,46,92,0.20);
+        }
+
+        #novaSessao {
+            color: #0A2E5C;
+            background: #eef3f8;
+            border: 1px solid var(--borda);
+        }
+
+        .botoes {
+            flex-wrap: wrap;
+        }
+
+        .estado-experimento {
+            margin-top: 7px;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--azul);
+        }
 
         /* =========================================================
            INFORMAÇÕES
@@ -1041,7 +1064,7 @@
         <div class="card-info">
 
             <div class="card-label">
-                Temperatura atual · Cápsula 1
+                Temperatura atual
             </div>
 
 
@@ -1152,30 +1175,17 @@
         <div class="barra-controles">
 
             <div class="controle-descricao">
-
-                Inicie o teste para registrar uma nova série
-                experimental.
-
+                <div id="descricaoControle">Prepare a primeira cápsula para iniciar a coleta.</div>
+                <div class="estado-experimento" id="estadoExperimento">Aguardando cápsula 1</div>
             </div>
 
-
             <div class="botoes">
-
-                <button id="iniciar">
-
-                    Iniciar experimento
-
-                </button>
-
-
-                <button
-                    id="parar"
-                    disabled>
-
-                    Encerrar
-
-                </button>
-
+                <button id="iniciar">Iniciar cápsula 1</button>
+                <button id="parar" disabled>Parar cápsula 1</button>
+                <button id="iniciar2" disabled>Iniciar cápsula 2</button>
+                <button id="parar2" disabled>Parar cápsula 2</button>
+                <button id="reprise" disabled>Reprise geral</button>
+                <button id="novaSessao">Novo experimento</button>
             </div>
 
         </div>
@@ -1236,171 +1246,134 @@
    ELEMENTOS
 ================================================================ */
 
-const canvas =
-    document.getElementById("grafico");
+const canvas = document.getElementById("grafico");
+const ctx = canvas.getContext("2d");
 
-const ctx =
-    canvas.getContext("2d");
+const statusTexto = document.getElementById("statusTexto");
+const statusIndicador = document.getElementById("statusIndicador");
+const statusLive = document.getElementById("statusLive");
 
+const temperaturaElemento = document.getElementById("temperatura1");
+const tempoAtualElemento = document.getElementById("tempoAtual");
+const quantidadeLeiturasElemento = document.getElementById("quantidadeLeituras");
 
-const statusTexto =
-    document.getElementById("statusTexto");
-
-const statusIndicador =
-    document.getElementById("statusIndicador");
-
-const statusLive =
-    document.getElementById("statusLive");
-
-
-const temperatura1Elemento =
-    document.getElementById("temperatura1");
-
-const tempoAtualElemento =
-    document.getElementById("tempoAtual");
-
-const quantidadeLeiturasElemento =
-    document.getElementById("quantidadeLeituras");
-
-
-const botaoIniciar =
-    document.getElementById("iniciar");
-
-const botaoParar =
-    document.getElementById("parar");
-
+const botaoIniciar = document.getElementById("iniciar");
+const botaoParar = document.getElementById("parar");
+const botaoIniciar2 = document.getElementById("iniciar2");
+const botaoParar2 = document.getElementById("parar2");
+const botaoReprise = document.getElementById("reprise");
+const botaoNovaSessao = document.getElementById("novaSessao");
+const descricaoControle = document.getElementById("descricaoControle");
+const estadoExperimento = document.getElementById("estadoExperimento");
 
 /* ================================================================
-   DADOS
+   DADOS E ESTADO
 ================================================================ */
 
-let executando = false;
+let etapa = "aguardando1";
 
 let dadosCapsula1 = [];
+let dadosCapsula2 = [];
 
 let tempoInicial = null;
+let tempoParadoCapsula1 = null;
+let tempoParadoCapsula2 = null;
+let duracaoCapsula1 = null;
 
 let temperaturaAtual = null;
-
 let temperaturaAlvo = null;
+let ultimoTempoRecebido = 0;
+let tempoVisual = 0;
 
-let ultimoTempo = 0;
-
-
-/*
- * Quantidade máxima de pontos realmente mantidos
- * no gráfico.
- *
- * 10 leituras/s:
- *
- * 600 pontos ≈ 60 segundos
- */
+let mostrandoReprise = false;
 
 const MAX_PONTOS_GRAFICO = 600;
-
 
 /* ================================================================
    CANVAS
 ================================================================ */
 
 function ajustarCanvas() {
+    const largura = canvas.clientWidth;
+    const altura = canvas.clientHeight;
+    const escala = window.devicePixelRatio || 1;
 
-    const largura =
-        canvas.clientWidth;
+    canvas.width = largura * escala;
+    canvas.height = altura * escala;
 
-    const altura =
-        canvas.clientHeight;
-
-    const escala =
-        window.devicePixelRatio || 1;
-
-
-    canvas.width =
-        largura * escala;
-
-    canvas.height =
-        altura * escala;
-
-
-    ctx.setTransform(
-        escala,
-        0,
-        0,
-        escala,
-        0,
-        0
-    );
-
-
+    ctx.setTransform(escala, 0, 0, escala, 0, 0);
     desenharGrafico();
 }
 
-
-window.addEventListener(
-    "resize",
-    ajustarCanvas
-);
-
+window.addEventListener("resize", ajustarCanvas);
 
 /* ================================================================
-   INTERPOLAÇÃO
+   UTILIDADES
 ================================================================ */
 
 function aproximar(atual, alvo) {
-
-    if (atual === null)
-        return alvo;
-
-    if (alvo === null)
-        return atual;
-
-
-    return atual +
-        (alvo - atual) * 0.20;
+    if (atual === null) return alvo;
+    if (alvo === null) return atual;
+    return atual + (alvo - atual) * 0.20;
 }
 
-
-/* ================================================================
-   PONTOS VISUAIS
-================================================================ */
-
 function obterPontosVisuais(dados) {
-
-    if (
-        dados.length <=
-        MAX_PONTOS_GRAFICO
-    ) {
-
-        return dados;
-    }
-
+    if (dados.length <= MAX_PONTOS_GRAFICO) return dados;
 
     const resultado = [];
+    const passo = (dados.length - 1) / (MAX_PONTOS_GRAFICO - 1);
 
-    const passo =
-        (dados.length - 1) /
-        (MAX_PONTOS_GRAFICO - 1);
-
-
-    for (
-        let i = 0;
-        i < MAX_PONTOS_GRAFICO;
-        i++
-    ) {
-
-        const indice =
-            Math.round(i * passo);
-
-
-        resultado.push(
-            dados[indice]
-        );
+    for (let i = 0; i < MAX_PONTOS_GRAFICO; i++) {
+        resultado.push(dados[Math.round(i * passo)]);
     }
-
 
     return resultado;
 }
 
+function todosOsDados() {
+    return mostrandoReprise
+        ? [...dadosCapsula1, ...dadosCapsula2]
+        : (etapa === "aguardando2" || etapa === "capsula2" || etapa === "finalizada"
+            ? [...dadosCapsula1, ...dadosCapsula2]
+            : dadosCapsula1);
+}
+
+function atualizarInterfaceEstado() {
+    if (etapa === "aguardando1") {
+        descricaoControle.textContent = "Prepare a primeira cápsula para iniciar a coleta.";
+        estadoExperimento.textContent = "Aguardando cápsula 1";
+    } else if (etapa === "capsula1") {
+        descricaoControle.textContent = "Cápsula 1 em coleta. Clique em Parar quando terminar.";
+        estadoExperimento.textContent = "Coletando cápsula 1";
+    } else if (etapa === "aguardando2") {
+        descricaoControle.textContent = "Cápsula 1 armazenada. Adicione a cápsula 2 e inicie a segunda coleta.";
+        estadoExperimento.textContent = "Cápsula 1 parada — aguardando cápsula 2";
+    } else if (etapa === "capsula2") {
+        descricaoControle.textContent = "Cápsula 2 em coleta. Ela será encerrada automaticamente no mesmo tempo da cápsula 1.";
+        estadoExperimento.textContent = "Coletando cápsula 2";
+    } else if (etapa === "finalizada") {
+        descricaoControle.textContent = "As duas séries foram armazenadas. Faça a reprise geral para comparar os resultados.";
+        estadoExperimento.textContent = "Experimento concluído";
+    } else if (etapa === "reprise") {
+        descricaoControle.textContent = "Reprise geral: comparação das duas cápsulas pelo mesmo eixo de tempo.";
+        estadoExperimento.textContent = "Reprise geral";
+    }
+}
+
+function atualizarBotoes() {
+    botaoIniciar.disabled = etapa !== "aguardando1";
+    botaoParar.disabled = etapa !== "capsula1";
+
+    botaoIniciar2.disabled = etapa !== "aguardando2";
+    botaoParar2.disabled = etapa !== "capsula2";
+
+    botaoReprise.disabled = !(etapa === "finalizada" || etapa === "reprise");
+}
+
+function atualizarQuantidade() {
+    let total = dadosCapsula1.length + dadosCapsula2.length;
+    quantidadeLeiturasElemento.textContent = total;
+}
 
 /* ================================================================
    DESENHAR GRÁFICO
@@ -1408,257 +1381,97 @@ function obterPontosVisuais(dados) {
 
 function desenharGrafico() {
 
-    const largura =
-        canvas.clientWidth;
+    const largura = canvas.clientWidth;
+    const altura = canvas.clientHeight;
 
-    const altura =
-        canvas.clientHeight;
-
-
-    ctx.clearRect(
-        0,
-        0,
-        largura,
-        altura
-    );
-
+    ctx.clearRect(0, 0, largura, altura);
 
     const margemEsquerda = 66;
-
     const margemDireita = 25;
-
     const margemSuperior = 25;
-
     const margemInferior = 55;
 
+    const graficoLargura = largura - margemEsquerda - margemDireita;
+    const graficoAltura = altura - margemSuperior - margemInferior;
 
-    const graficoLargura =
-        largura -
-        margemEsquerda -
-        margemDireita;
+    let dadosBase;
 
+    if (mostrandoReprise || etapa === "reprise") {
+        dadosBase = [...dadosCapsula1, ...dadosCapsula2];
+    } else if (etapa === "aguardando2" || etapa === "capsula2" || etapa === "finalizada") {
+        dadosBase = [...dadosCapsula1, ...dadosCapsula2];
+    } else {
+        dadosBase = dadosCapsula1;
+    }
 
-    const graficoAltura =
-        altura -
-        margemSuperior -
-        margemInferior;
+    const dados1 = obterPontosVisuais(dadosCapsula1);
+    const dados2 = obterPontosVisuais(dadosCapsula2);
 
-
-    const dados =
-        obterPontosVisuais(
-            dadosCapsula1
-        );
-
-
-    /* ============================================================
-       SEM DADOS
-    ============================================================ */
-
-    if (
-        dados.length === 0
-    ) {
-
-        ctx.textAlign =
-            "center";
-
-        ctx.textBaseline =
-            "middle";
-
-        ctx.fillStyle =
-            "#94a3b8";
-
-        ctx.font =
-            "600 14px Arial";
-
-
-        ctx.fillText(
-            "Aguardando o início do experimento...",
-            largura / 2,
-            altura / 2
-        );
-
-
+    if (dadosBase.length === 0) {
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "600 14px Arial";
+        ctx.fillText("Aguardando o início do experimento...", largura / 2, altura / 2);
         return;
     }
 
+    const temperaturas = dadosBase.map(p => p.temperatura);
 
-    /* ============================================================
-       TEMPERATURAS
-    ============================================================ */
+    if (temperaturaAtual !== null) temperaturas.push(temperaturaAtual);
 
-    const temperaturas =
-        dados.map(
-            p => p.temperatura
-        );
+    let temperaturaMin = Math.min(...temperaturas);
+    let temperaturaMax = Math.max(...temperaturas);
 
+    let faixa = Math.max(temperaturaMax - temperaturaMin, 2);
+    temperaturaMin -= faixa * 0.15;
+    temperaturaMax += faixa * 0.15;
 
-    if (
-        temperaturaAtual !== null
-    ) {
+    let tempoMax = 10;
 
-        temperaturas.push(
-            temperaturaAtual
-        );
+    if (mostrandoReprise || etapa === "reprise") {
+        tempoMax = Math.max(duracaoCapsula1 || 10, 10);
+    } else if (etapa === "aguardando2" || etapa === "finalizada") {
+        tempoMax = Math.max(duracaoCapsula1 || ultimoTempoRecebido, 10);
+    } else {
+        tempoMax = Math.max(tempoVisual, ultimoTempoRecebido, 10);
     }
-
-
-    let temperaturaMin =
-        Math.min(
-            ...temperaturas
-        );
-
-
-    let temperaturaMax =
-        Math.max(
-            ...temperaturas
-        );
-
-
-    /*
-     * Mantém uma margem visual.
-     */
-
-    let faixa =
-        temperaturaMax -
-        temperaturaMin;
-
-
-    faixa =
-        Math.max(
-            faixa,
-            2
-        );
-
-
-    temperaturaMin -=
-        faixa * 0.15;
-
-
-    temperaturaMax +=
-        faixa * 0.15;
-
-
-    /* ============================================================
-       TEMPO
-    ============================================================ */
-
-    /*
-     * O eixo X cresce conforme o experimento.
-     *
-     * Nunca usamos performance.now().
-     * O tempo vem exclusivamente do ESP32.
-     */
-
-    const tempoMax =
-        Math.max(
-            ultimoTempo,
-            10
-        );
-
-
-    /* ============================================================
-       CONVERSÃO
-    ============================================================ */
 
     function converterX(tempo) {
-
-        return margemEsquerda +
-
-            (
-                tempo /
-                tempoMax
-            ) *
-
-            graficoLargura;
+        return margemEsquerda + (tempo / tempoMax) * graficoLargura;
     }
-
 
     function converterY(temperatura) {
-
         return margemSuperior +
-
-            (
-                (temperaturaMax - temperatura) /
-                (temperaturaMax - temperaturaMin)
-            ) *
-
-            graficoAltura;
+            ((temperaturaMax - temperatura) / (temperaturaMax - temperaturaMin)) * graficoAltura;
     }
-
 
     /* ============================================================
        GRADE Y
     ============================================================ */
 
     ctx.lineWidth = 1;
-
-    ctx.font =
-        "12px Arial";
-
+    ctx.font = "12px Arial";
 
     const linhas = 6;
 
+    for (let i = 0; i <= linhas; i++) {
+        const y = margemSuperior + (graficoAltura / linhas) * i;
 
-    for (
-        let i = 0;
-        i <= linhas;
-        i++
-    ) {
-
-        const y =
-            margemSuperior +
-            (graficoAltura / linhas) *
-            i;
-
-
-        ctx.strokeStyle =
-            "rgba(100,116,139,0.12)";
-
-
+        ctx.strokeStyle = "rgba(100,116,139,0.12)";
         ctx.beginPath();
-
-        ctx.moveTo(
-            margemEsquerda,
-            y
-        );
-
-        ctx.lineTo(
-            largura - margemDireita,
-            y
-        );
-
+        ctx.moveTo(margemEsquerda, y);
+        ctx.lineTo(largura - margemDireita, y);
         ctx.stroke();
 
+        const valor = temperaturaMax -
+            ((temperaturaMax - temperaturaMin) * i / linhas);
 
-        const valor =
-            temperaturaMax -
-
-            (
-                (temperaturaMax - temperaturaMin) *
-                i /
-                linhas
-            );
-
-
-        ctx.fillStyle =
-            "#64748b";
-
-        ctx.textAlign =
-            "right";
-
-        ctx.textBaseline =
-            "middle";
-
-
-        ctx.fillText(
-            valor.toFixed(1) +
-            " °C",
-
-            margemEsquerda - 10,
-            y
-        );
+        ctx.fillStyle = "#64748b";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        ctx.fillText(valor.toFixed(1) + " °C", margemEsquerda - 10, y);
     }
-
 
     /* ============================================================
        EIXO X
@@ -1666,398 +1479,147 @@ function desenharGrafico() {
 
     const divisoesX = 6;
 
+    for (let i = 0; i <= divisoesX; i++) {
+        const tempo = tempoMax * i / divisoesX;
+        const x = converterX(tempo);
 
-    for (
-        let i = 0;
-        i <= divisoesX;
-        i++
-    ) {
-
-        const tempo =
-            tempoMax *
-            i /
-            divisoesX;
-
-
-        const x =
-            converterX(
-                tempo
-            );
-
-
-        ctx.strokeStyle =
-            "rgba(100,116,139,0.09)";
-
-
+        ctx.strokeStyle = "rgba(100,116,139,0.09)";
         ctx.beginPath();
-
-        ctx.moveTo(
-            x,
-            margemSuperior
-        );
-
-        ctx.lineTo(
-            x,
-            altura - margemInferior
-        );
-
+        ctx.moveTo(x, margemSuperior);
+        ctx.lineTo(x, altura - margemInferior);
         ctx.stroke();
 
-
-        ctx.fillStyle =
-            "#64748b";
-
-        ctx.textAlign =
-            "center";
-
-        ctx.textBaseline =
-            "top";
-
-
-        ctx.fillText(
-            tempo.toFixed(1) +
-            " s",
-
-            x,
-            altura -
-            margemInferior +
-            13
-        );
+        ctx.fillStyle = "#64748b";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText(tempo.toFixed(1) + " s", x, altura - margemInferior + 13);
     }
 
-
-    /* ============================================================
-       PONTOS
-    ============================================================ */
-
-    const pontos =
-        dados.map(
-            p => ({
-
-                x:
-                    converterX(
-                        p.tempo
-                    ),
-
-                y:
-                    converterY(
-                        p.temperatura
-                    )
-
-            })
-        );
-
-
-    if (
-        pontos.length === 0
-    ) {
-
-        return;
-    }
-
-
-    const ultimo =
-        pontos[
-            pontos.length - 1
-        ];
-
-
-    /* ============================================================
-       ÁREA ABAIXO DA CURVA
-    ============================================================ */
-
-    const caminhoArea =
-        new Path2D();
-
-
-    caminhoArea.moveTo(
-        pontos[0].x,
-        pontos[0].y
-    );
-
-
-    for (
-        let i = 1;
-        i < pontos.length;
-        i++
-    ) {
-
-        const anterior =
-            pontos[i - 1];
-
-        const atual =
-            pontos[i];
-
-
-        const meioX =
-            (
-                anterior.x +
-                atual.x
-            ) / 2;
-
-
-        const meioY =
-            (
-                anterior.y +
-                atual.y
-            ) / 2;
-
-
-        caminhoArea.quadraticCurveTo(
-            anterior.x,
-            anterior.y,
-            meioX,
-            meioY
-        );
-    }
-
-
-    caminhoArea.lineTo(
-        ultimo.x,
-        altura - margemInferior
-    );
-
-
-    caminhoArea.lineTo(
-        pontos[0].x,
-        altura - margemInferior
-    );
-
-
-    caminhoArea.closePath();
-
-
-    const gradiente =
-        ctx.createLinearGradient(
-            0,
-            margemSuperior,
-            0,
-            altura - margemInferior
-        );
-
-
-    gradiente.addColorStop(
-        0,
-        "rgba(74,144,217,0.20)"
-    );
-
-
-    gradiente.addColorStop(
-        1,
-        "rgba(74,144,217,0.01)"
-    );
-
-
-    ctx.fillStyle =
-        gradiente;
-
-
-    ctx.fill(
-        caminhoArea
-    );
-
-
-    /* ============================================================
-       LINHA
-    ============================================================ */
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        pontos[0].x,
-        pontos[0].y
-    );
-
-
-    for (
-        let i = 1;
-        i < pontos.length;
-        i++
-    ) {
-
-        const anterior =
-            pontos[i - 1];
-
-        const atual =
-            pontos[i];
-
-
-        const meioX =
-            (
-                anterior.x +
-                atual.x
-            ) / 2;
-
-
-        const meioY =
-            (
-                anterior.y +
-                atual.y
-            ) / 2;
-
-
-        ctx.quadraticCurveTo(
-            anterior.x,
-            anterior.y,
-            meioX,
-            meioY
-        );
-    }
-
-
-    ctx.lineTo(
-        ultimo.x,
-        ultimo.y
-    );
-
-
-    ctx.strokeStyle =
-        "#4A90D9";
-
-    ctx.lineWidth =
-        3.5;
-
-    ctx.lineCap =
-        "round";
-
-    ctx.lineJoin =
-        "round";
-
-
-    ctx.shadowColor =
-        "rgba(74,144,217,0.28)";
-
-    ctx.shadowBlur =
-        10;
-
-
-    ctx.stroke();
-
-
-    ctx.shadowBlur =
-        0;
-
-
-    /* ============================================================
-       PONTO ATUAL
-    ============================================================ */
-
-    if (
-        temperaturaAtual !== null
-    ) {
-
-        const x =
-            converterX(
-                ultimoTempo
+    function desenharSerie(dados, preenchimento, linha, espessura) {
+        if (dados.length === 0) return;
+
+        const pontos = dados.map(p => ({
+            x: converterX(p.tempo),
+            y: converterY(p.temperatura)
+        }));
+
+        if (preenchimento) {
+            const area = new Path2D();
+            area.moveTo(pontos[0].x, pontos[0].y);
+
+            for (let i = 1; i < pontos.length; i++) {
+                const anterior = pontos[i - 1];
+                const atual = pontos[i];
+                const meioX = (anterior.x + atual.x) / 2;
+                const meioY = (anterior.y + atual.y) / 2;
+
+                area.quadraticCurveTo(anterior.x, anterior.y, meioX, meioY);
+            }
+
+            const ultimo = pontos[pontos.length - 1];
+            area.lineTo(ultimo.x, altura - margemInferior);
+            area.lineTo(pontos[0].x, altura - margemInferior);
+            area.closePath();
+
+            const gradiente = ctx.createLinearGradient(
+                0, margemSuperior, 0, altura - margemInferior
             );
 
+            gradiente.addColorStop(0, preenchimento);
+            gradiente.addColorStop(1, "rgba(74,144,217,0.01)");
 
-        const y =
-            converterY(
-                temperaturaAtual
-            );
-
-
-        /* brilho */
+            ctx.fillStyle = gradiente;
+            ctx.fill(area);
+        }
 
         ctx.beginPath();
+        ctx.moveTo(pontos[0].x, pontos[0].y);
 
-        ctx.arc(
-            x,
-            y,
-            9,
-            0,
-            Math.PI * 2
-        );
+        for (let i = 1; i < pontos.length; i++) {
+            const anterior = pontos[i - 1];
+            const atual = pontos[i];
+            const meioX = (anterior.x + atual.x) / 2;
+            const meioY = (anterior.y + atual.y) / 2;
 
+            ctx.quadraticCurveTo(anterior.x, anterior.y, meioX, meioY);
+        }
 
-        ctx.fillStyle =
-            "rgba(74,144,217,0.15)";
+        const ultimo = pontos[pontos.length - 1];
+        ctx.lineTo(ultimo.x, ultimo.y);
 
-        ctx.fill();
+        ctx.strokeStyle = linha;
+        ctx.lineWidth = espessura;
+        ctx.lineCap = "round";
+        ctx.lineJoin = "round";
+        ctx.shadowColor = "rgba(74,144,217,0.18)";
+        ctx.shadowBlur = 7;
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+    }
 
+    /* ============================================================
+       SÉRIES
+    ============================================================ */
 
-        /* ponto */
+    if (mostrandoReprise || etapa === "reprise") {
+        desenharSerie(dados1, "rgba(74,144,217,0.18)", "#4A90D9", 3.5);
+
+        if (dados2.length > 0) {
+            desenharSerie(dados2, "rgba(46,196,182,0.14)", "#2EC4B6", 3.5);
+        }
+    } else {
+        if (dadosCapsula1.length > 0) {
+            desenharSerie(dados1, "rgba(74,144,217,0.18)", "#4A90D9", 3.5);
+        }
+
+        if (dadosCapsula2.length > 0) {
+            desenharSerie(dados2, "rgba(46,196,182,0.14)", "#2EC4B6", 3.5);
+        }
+    }
+
+    /* ============================================================
+       TEMPERATURA AO VIVO
+
+       NÃO há bolinha acompanhando a ponta.
+       Depois de PARAR, a temperatura continua podendo mudar,
+       mas isso não acrescenta novos pontos às séries armazenadas.
+    ============================================================ */
+
+    if (!mostrandoReprise && temperaturaAtual !== null &&
+        (etapa === "capsula1" || etapa === "aguardando2" || etapa === "capsula2" || etapa === "finalizada")) {
+
+        const x = converterX(tempoVisual);
+        const y = converterY(temperaturaAtual);
 
         ctx.beginPath();
-
-        ctx.arc(
-            x,
-            y,
-            5,
-            0,
-            Math.PI * 2
-        );
-
-
-        ctx.fillStyle =
-            "#ffffff";
-
-        ctx.fill();
-
-
-        ctx.strokeStyle =
-            "#4A90D9";
-
-        ctx.lineWidth =
-            3;
-
+        ctx.moveTo(x - 5, y);
+        ctx.lineTo(x + 5, y);
+        ctx.strokeStyle = "rgba(71,85,105,0.55)";
+        ctx.lineWidth = 2;
         ctx.stroke();
     }
-
 
     /* ============================================================
        TÍTULOS DOS EIXOS
     ============================================================ */
 
-    ctx.fillStyle =
-        "#475569";
-
-    ctx.font =
-        "600 12px Arial";
-
-    ctx.textAlign =
-        "center";
-
-    ctx.textBaseline =
-        "bottom";
-
+    ctx.fillStyle = "#475569";
+    ctx.font = "600 12px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
 
     ctx.fillText(
         "Tempo decorrido",
-
-        margemEsquerda +
-        graficoLargura / 2,
-
+        margemEsquerda + graficoLargura / 2,
         altura - 3
     );
 
-
     ctx.save();
-
-
-    ctx.translate(
-        14,
-        margemSuperior +
-        graficoAltura / 2
-    );
-
-
-    ctx.rotate(
-        -Math.PI / 2
-    );
-
-
-    ctx.fillText(
-        "Temperatura",
-        0,
-        0
-    );
-
-
+    ctx.translate(14, margemSuperior + graficoAltura / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText("Temperatura", 0, 0);
     ctx.restore();
 }
-
 
 /* ================================================================
    RECEBER TEMPERATURA
@@ -2065,446 +1627,307 @@ function desenharGrafico() {
 
 function receberTemperatura(dados) {
 
-    /*
-     * Aceita qualquer leitura válida.
-     *
-     * Não existe filtro de 1 segundo aqui.
-     */
+    if (dados.temperatura === undefined || dados.temperatura === null) return;
+    if (dados.tempo === undefined || dados.tempo === null) return;
 
-    if (
-        dados.temperatura === undefined ||
-        dados.temperatura === null
-    ) {
+    const temperatura = Number(dados.temperatura);
+    const tempoESP32 = Number(dados.tempo);
 
-        return;
+    if (!Number.isFinite(temperatura) || !Number.isFinite(tempoESP32)) return;
+
+    const tempo = Math.max(0, (tempoESP32 / 1000) - (tempoInicial === null ? tempoESP32 / 1000 : tempoInicial));
+
+    if (tempoInicial === null) {
+        tempoInicial = tempoESP32 / 1000;
     }
 
+    const tempoRelativo = Math.max(0, (tempoESP32 / 1000) - tempoInicial);
 
-    const temperatura =
-        Number(
-            dados.temperatura
-        );
-
-
-    if (
-        !Number.isFinite(
-            temperatura
-        )
-    ) {
-
-        return;
-    }
-
-
-    if (
-        dados.tempo === undefined ||
-        dados.tempo === null
-    ) {
-
-        return;
-    }
-
+    temperaturaAlvo = temperatura;
+    temperaturaAtual = temperatura;
+    ultimoTempoRecebido = tempoRelativo;
 
     /*
-     * O ESP32 envia millis().
-     *
-     * Exemplo:
-     *
-     * 100
-     * 200
-     * 300
-     * 400
-     *
-     * Aqui transformamos para segundos:
-     *
-     * 0.1
-     * 0.2
-     * 0.3
-     * 0.4
+     * O tempo visual só avança enquanto a cápsula em questão está
+     * sendo coletada. Depois de PARAR, ele fica congelado.
      */
-
-    const tempoESP32 =
-        Number(
-            dados.tempo
-        );
-
-
-    if (
-        !Number.isFinite(
-            tempoESP32
-        )
-    ) {
-
-        return;
+    if (etapa === "capsula1") {
+        tempoVisual = tempoRelativo;
     }
 
-
-    let tempo =
-        tempoESP32 / 1000;
-
-
-    /* ============================================================
-       PRIMEIRA LEITURA
-    ============================================================ */
-
-    if (
-        tempoInicial === null
-    ) {
-
-        tempoInicial =
-            tempo;
+    if (etapa === "capsula2") {
+        tempoVisual = Math.min(tempoRelativo - (tempoParadoCapsula1 || 0), duracaoCapsula1 || tempoRelativo);
+        tempoVisual = Math.max(0, tempoVisual);
     }
-
-
-    /*
-     * Tempo relativo ao início da página/experimento.
-     */
-
-    tempo -=
-        tempoInicial;
-
-
-    tempo =
-        Math.max(
-            0,
-            tempo
-        );
-
-
-    /* ============================================================
-       TEMPERATURA
-    ============================================================ */
-
-    temperaturaAlvo =
-        temperatura;
-
-
-    if (
-        temperaturaAtual === null
-    ) {
-
-        temperaturaAtual =
-            temperatura;
-    }
-
-
-    ultimoTempo =
-        tempo;
-
 
     /* ============================================================
        INTERFACE
     ============================================================ */
 
-    temperatura1Elemento.innerHTML =
-        temperatura.toFixed(2) +
-        ' <span>°C</span>';
+    temperaturaElemento.innerHTML = temperatura.toFixed(2) + ' <span>°C</span>';
 
-
-    tempoAtualElemento.innerHTML =
-        tempo.toFixed(1) +
+    tempoAtualElemento.innerHTML = tempoVisual.toFixed(1) +
         ' <span class="valor-unidade">segundos</span>';
 
-
     /* ============================================================
-       SALVAR CADA LEITURA
+       ARMAZENAMENTO
     ============================================================ */
 
-    if (
-        executando
-    ) {
+    if (etapa === "capsula1") {
 
         dadosCapsula1.push({
-
-            tempo:
-                tempo,
-
-            temperatura:
-                temperatura
-
+            tempo: tempoRelativo,
+            temperatura: temperatura
         });
-
-
-        /*
-         * IMPORTANTE:
-         *
-         * Cada mensagem recebida é adicionada.
-         *
-         * Se o ESP32 mandar:
-         *
-         * 10 leituras/s
-         *
-         * serão armazenadas:
-         *
-         * 10 leituras/s.
-         */
-
 
         quantidadeLeiturasElemento.textContent =
             dadosCapsula1.length;
     }
-}
 
+    else if (etapa === "capsula2") {
+
+        const tempoCapsula2 = Math.max(
+            0,
+            tempoRelativo - (tempoParadoCapsula1 || 0)
+        );
+
+        /*
+         * Garante que a segunda série tenha exatamente o mesmo
+         * intervalo máximo da primeira.
+         */
+        if (duracaoCapsula1 !== null && tempoCapsula2 <= duracaoCapsula1) {
+
+            dadosCapsula2.push({
+                tempo: tempoCapsula2,
+                temperatura: temperatura
+            });
+        }
+
+        quantidadeLeiturasElemento.textContent =
+            dadosCapsula1.length + dadosCapsula2.length;
+
+        /*
+         * Encerra automaticamente a cápsula 2 quando chega ao
+         * mesmo tempo de duração da cápsula 1.
+         */
+        if (duracaoCapsula1 !== null && tempoCapsula2 >= duracaoCapsula1) {
+            pararCapsula2();
+        }
+    }
+}
 
 /* ================================================================
    ANIMAÇÃO
 ================================================================ */
 
-let ultimoFrame =
-    0;
-
-
-function animar(timestamp) {
-
-    /*
-     * O gráfico é desenhado aproximadamente
-     * 30 vezes por segundo.
-     *
-     * Isso NÃO limita o recebimento dos dados.
-     *
-     * O WebSocket pode receber 10, 20, 50...
-     * mensagens por segundo independentemente.
-     */
-
-    if (
-        timestamp -
-        ultimoFrame >=
-        33
-    ) {
-
-        ultimoFrame =
-            timestamp;
-
-
-        temperaturaAtual =
-            aproximar(
-                temperaturaAtual,
-                temperaturaAlvo
-            );
-
-
-        desenharGrafico();
-    }
-
-
-    requestAnimationFrame(
-        animar
-    );
+function animar() {
+    desenharGrafico();
+    requestAnimationFrame(animar);
 }
 
+/* ================================================================
+   INICIAR CÁPSULA 1
+================================================================ */
+
+botaoIniciar.addEventListener("click", function () {
+
+    dadosCapsula1 = [];
+    dadosCapsula2 = [];
+
+    tempoInicial = null;
+    tempoParadoCapsula1 = null;
+    tempoParadoCapsula2 = null;
+    duracaoCapsula1 = null;
+
+    temperaturaAtual = null;
+    temperaturaAlvo = null;
+    ultimoTempoRecebido = 0;
+    tempoVisual = 0;
+
+    mostrandoReprise = false;
+    etapa = "capsula1";
+
+    temperaturaElemento.innerHTML = '-- <span>°C</span>';
+    tempoAtualElemento.innerHTML = '0.0 <span class="valor-unidade">segundos</span>';
+    quantidadeLeiturasElemento.textContent = "0";
+
+    atualizarInterfaceEstado();
+    atualizarBotoes();
+    desenharGrafico();
+});
+
+/* ================================================================
+   PARAR CÁPSULA 1
+================================================================ */
+
+botaoParar.addEventListener("click", function () {
+
+    if (etapa !== "capsula1") return;
+
+    /*
+     * O tempo da cápsula é congelado neste instante.
+     * A temperatura continuará sendo recebida pelo WebSocket.
+     */
+    tempoParadoCapsula1 = tempoVisual;
+    duracaoCapsula1 = tempoVisual;
+
+    etapa = "aguardando2";
+
+    atualizarInterfaceEstado();
+    atualizarBotoes();
+    desenharGrafico();
+});
+
+/* ================================================================
+   INICIAR CÁPSULA 2
+================================================================ */
+
+botaoIniciar2.addEventListener("click", function () {
+
+    if (etapa !== "aguardando2") return;
+
+    etapa = "capsula2";
+    mostrandoReprise = false;
+
+    tempoVisual = 0;
+    tempoParadoCapsula2 = null;
+
+    atualizarInterfaceEstado();
+    atualizarBotoes();
+    desenharGrafico();
+});
+
+/* ================================================================
+   PARAR CÁPSULA 2
+================================================================ */
+
+function pararCapsula2() {
+
+    if (etapa !== "capsula2") return;
+
+    tempoParadoCapsula2 = tempoVisual;
+    etapa = "finalizada";
+
+    atualizarInterfaceEstado();
+    atualizarBotoes();
+    desenharGrafico();
+}
+
+botaoParar2.addEventListener("click", function () {
+    pararCapsula2();
+});
+
+/* ================================================================
+   REPRISE GERAL
+================================================================ */
+
+botaoReprise.addEventListener("click", function () {
+
+    if (dadosCapsula1.length === 0 || dadosCapsula2.length === 0) return;
+
+    mostrandoReprise = true;
+    etapa = "reprise";
+
+    /*
+     * A reprise começa pelo zero e utiliza a duração da cápsula 1
+     * como referência para ambas as séries.
+     */
+    tempoVisual = duracaoCapsula1 || 0;
+
+    atualizarInterfaceEstado();
+    atualizarBotoes();
+    desenharGrafico();
+});
+
+/* ================================================================
+   NOVO EXPERIMENTO
+================================================================ */
+
+botaoNovaSessao.addEventListener("click", function () {
+
+    etapa = "aguardando1";
+
+    dadosCapsula1 = [];
+    dadosCapsula2 = [];
+
+    tempoInicial = null;
+    tempoParadoCapsula1 = null;
+    tempoParadoCapsula2 = null;
+    duracaoCapsula1 = null;
+
+    temperaturaAtual = null;
+    temperaturaAlvo = null;
+    ultimoTempoRecebido = 0;
+    tempoVisual = 0;
+
+    mostrandoReprise = false;
+
+    temperaturaElemento.innerHTML = '-- <span>°C</span>';
+    tempoAtualElemento.innerHTML = '0.0 <span class="valor-unidade">segundos</span>';
+    quantidadeLeiturasElemento.textContent = "0";
+
+    atualizarInterfaceEstado();
+    atualizarBotoes();
+    desenharGrafico();
+});
 
 /* ================================================================
    WEBSOCKET
 ================================================================ */
 
-const protocolo =
-    location.protocol === "https:"
-        ? "wss:"
-        : "ws:";
-
-
-const enderecoWebSocket =
-    `${protocolo}//${location.host}/api/ws`;
-
+const protocolo = location.protocol === "https:" ? "wss:" : "ws:";
+const enderecoWebSocket = `${protocolo}//${location.host}/api/ws`;
 
 let ws;
 
-
 function conectarWebSocket() {
 
-    ws =
-        new WebSocket(
-            enderecoWebSocket
-        );
+    ws = new WebSocket(enderecoWebSocket);
 
+    ws.onopen = function () {
 
-    ws.onopen =
-        function () {
+        statusTexto.textContent = "Conectado ao ESP32 / Cloudflare";
+        statusIndicador.classList.add("online");
+        statusLive.classList.add("visivel");
+    };
 
-            statusTexto.textContent =
-                "Conectado ao ESP32 / Cloudflare";
+    ws.onmessage = function (event) {
 
+        try {
+            const dados = JSON.parse(event.data);
+            receberTemperatura(dados);
+        }
+        catch (erro) {
+            console.error("Erro ao interpretar dados:", erro);
+        }
+    };
 
-            statusIndicador.classList.add(
-                "online"
-            );
+    ws.onerror = function () {
 
+        statusTexto.textContent = "Erro na comunicação com o servidor";
+        statusIndicador.classList.remove("online");
+        statusLive.classList.remove("visivel");
+    };
 
-            statusLive.classList.add(
-                "visivel"
-            );
-        };
+    ws.onclose = function () {
 
+        statusTexto.textContent = "Conexão encerrada. Tentando reconectar...";
+        statusIndicador.classList.remove("online");
+        statusLive.classList.remove("visivel");
 
-    ws.onmessage =
-        function (event) {
-
-            try {
-
-                const dados =
-                    JSON.parse(
-                        event.data
-                    );
-
-
-                /*
-                 * TODA mensagem recebida
-                 * passa diretamente para
-                 * receberTemperatura().
-                 */
-
-                receberTemperatura(
-                    dados
-                );
-
-            }
-
-            catch (erro) {
-
-                console.error(
-                    "Erro ao interpretar dados:",
-                    erro
-                );
-            }
-        };
-
-
-    ws.onerror =
-        function () {
-
-            statusTexto.textContent =
-                "Erro na comunicação com o servidor";
-
-
-            statusIndicador.classList.remove(
-                "online"
-            );
-
-
-            statusLive.classList.remove(
-                "visivel"
-            );
-        };
-
-
-    ws.onclose =
-        function () {
-
-            statusTexto.textContent =
-                "Conexão encerrada. Tentando reconectar...";
-
-
-            statusIndicador.classList.remove(
-                "online"
-            );
-
-
-            statusLive.classList.remove(
-                "visivel"
-            );
-
-
-            setTimeout(
-                conectarWebSocket,
-                2000
-            );
-        };
+        setTimeout(conectarWebSocket, 2000);
+    };
 }
-
-
-/* ================================================================
-   INICIAR EXPERIMENTO
-================================================================ */
-
-botaoIniciar.addEventListener(
-    "click",
-    function () {
-
-        /*
-         * Limpa a série anterior.
-         */
-
-        dadosCapsula1 = [];
-
-
-        /*
-         * O próximo pacote recebido
-         * será considerado o tempo 0.
-         */
-
-        tempoInicial = null;
-
-
-        temperaturaAtual = null;
-
-        temperaturaAlvo = null;
-
-        ultimoTempo = 0;
-
-
-        temperatura1Elemento.innerHTML =
-            '-- <span>°C</span>';
-
-
-        tempoAtualElemento.innerHTML =
-            '0.0 <span class="valor-unidade">segundos</span>';
-
-
-        quantidadeLeiturasElemento.textContent =
-            "0";
-
-
-        executando = true;
-
-
-        botaoIniciar.disabled =
-            true;
-
-
-        botaoParar.disabled =
-            false;
-
-
-        desenharGrafico();
-    }
-);
-
-
-/* ================================================================
-   PARAR EXPERIMENTO
-================================================================ */
-
-botaoParar.addEventListener(
-    "click",
-    function () {
-
-        executando = false;
-
-
-        botaoIniciar.disabled =
-            false;
-
-
-        botaoParar.disabled =
-            true;
-
-
-        desenharGrafico();
-    }
-);
-
 
 /* ================================================================
    INICIALIZAÇÃO
 ================================================================ */
 
 ajustarCanvas();
-
+atualizarInterfaceEstado();
+atualizarBotoes();
 conectarWebSocket();
-
-requestAnimationFrame(
-    animar
-);
+requestAnimationFrame(animar);
 
 </script>
 
