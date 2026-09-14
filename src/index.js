@@ -1,14 +1,19 @@
 import { DurableObject } from "cloudflare:workers";
 
+
 export default {
+
     async fetch(request, env) {
 
         const url = new URL(request.url);
 
+
         /*
          * Teste do backend
          */
+
         if (url.pathname === "/api/teste") {
+
             return new Response(
                 JSON.stringify({
                     status: "ok",
@@ -25,7 +30,10 @@ export default {
 
         /*
          * Receber temperatura do ESP32
+         *
+         * Mantido para compatibilidade com o método HTTP antigo.
          */
+
         if (
             url.pathname === "/api/temperatura" &&
             request.method === "POST"
@@ -42,9 +50,11 @@ export default {
                     "https://experimento/temperatura",
                     {
                         method: "POST",
+
                         headers: {
                             "Content-Type": "application/json"
                         },
+
                         body: await request.text()
                     }
                 )
@@ -53,8 +63,11 @@ export default {
 
 
         /*
-         * WebSocket para o navegador
+         * WebSocket
+         *
+         * Usado pelo ESP32 e pelo navegador.
          */
+
         if (
             url.pathname === "/api/ws" &&
             request.headers.get("Upgrade") === "websocket"
@@ -73,6 +86,7 @@ export default {
         /*
          * Entregar o site
          */
+
         return env.ASSETS.fetch(request);
     }
 };
@@ -84,13 +98,17 @@ export default {
 
 export class ExperimentoDO extends DurableObject {
 
+
     async fetch(request) {
 
         const url = new URL(request.url);
 
 
         /*
-         * Navegador solicita WebSocket
+         * Solicitação de WebSocket
+         *
+         * Tanto o ESP32 quanto o navegador
+         * podem estabelecer uma conexão aqui.
          */
 
         if (
@@ -102,17 +120,28 @@ export class ExperimentoDO extends DurableObject {
             const client = pair[0];
             const server = pair[1];
 
+
+            /*
+             * Aceita a conexão no Durable Object
+             */
+
             this.ctx.acceptWebSocket(server);
 
+
             return new Response(null, {
+
                 status: 101,
+
                 webSocket: client
             });
         }
 
 
         /*
-         * Receber temperatura do ESP32
+         * Receber temperatura pelo método HTTP
+         *
+         * Mantido para compatibilidade com
+         * o sistema anterior.
          */
 
         if (
@@ -122,18 +151,25 @@ export class ExperimentoDO extends DurableObject {
 
             const dados = await request.json();
 
+
             console.log(
-                "Temperatura recebida:",
+                "Temperatura recebida via HTTP:",
                 dados
             );
 
 
             /*
-             * Enviar para todos os navegadores conectados
+             * Transformar os dados em JSON
              */
 
             const mensagem =
                 JSON.stringify(dados);
+
+
+            /*
+             * Enviar para todos os WebSockets
+             * conectados.
+             */
 
             for (
                 const websocket
@@ -150,16 +186,21 @@ export class ExperimentoDO extends DurableObject {
                         "Erro ao enviar WebSocket:",
                         erro
                     );
-
                 }
             }
 
 
+            /*
+             * Resposta HTTP
+             */
+
             return new Response(
+
                 JSON.stringify({
                     recebido: true,
                     dados: dados
                 }),
+
                 {
                     headers: {
                         "Content-Type": "application/json"
@@ -173,15 +214,70 @@ export class ExperimentoDO extends DurableObject {
     }
 
 
+    /*
+     * Mensagem recebida através do WebSocket
+     *
+     * Agora o ESP32 pode enviar diretamente
+     * a temperatura pelo WebSocket.
+     */
+
     webSocketMessage(websocket, mensagem) {
 
+
         console.log(
-            "Mensagem recebida do navegador:",
+            "Mensagem recebida pelo WebSocket:",
             mensagem
         );
 
+
+        /*
+         * Repassar a mensagem para os outros
+         * WebSockets conectados.
+         *
+         * Assim:
+         *
+         * ESP32
+         *   ↓
+         * Worker
+         *   ↓
+         * navegador
+         */
+
+        for (
+            const cliente
+            of this.ctx.getWebSockets()
+        ) {
+
+
+            /*
+             * Não envia novamente para o próprio
+             * dispositivo que enviou a mensagem.
+             */
+
+            if (cliente === websocket) {
+                continue;
+            }
+
+
+            try {
+
+                cliente.send(mensagem);
+
+            } catch (erro) {
+
+                console.log(
+                    "Erro ao encaminhar mensagem:",
+                    erro
+                );
+
+            }
+        }
     }
 
+
+    /*
+     * WebSocket fechado
+     */
 
     webSocketClose(
         websocket,
