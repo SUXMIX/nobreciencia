@@ -5,11 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>O "Efeito Estufa" na Sala de Aula</title>
+    <title>Efeito Estufa — Monitoramento</title>
 
     <style>
+
+        /* =========================================================
+           RESET
+        ========================================================= */
+
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         :root {
@@ -17,423 +24,956 @@
             --azul-claro: #4A90D9;
             --verde: #2EC4B6;
             --amarelo: #F9A825;
-            --fundo: #f4f7fa;
-            --texto: #172033;
-            --cinza: #6b7280;
-            --borda: #e5e9ef;
+
+            --fundo: #eef3f8;
+            --branco: #ffffff;
+            --texto: #162235;
+            --texto-secundario: #64748b;
+
+            --borda: rgba(15, 35, 60, 0.09);
+
+            --sombra:
+                0 20px 60px rgba(20, 45, 75, 0.10);
+
+            --sombra-pequena:
+                0 8px 25px rgba(20, 45, 75, 0.08);
         }
+
+
+        /* =========================================================
+           BODY
+        ========================================================= */
 
         body {
-            margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: var(--fundo);
+
+            min-height: 100vh;
+
+            font-family:
+                Inter,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Arial,
+                sans-serif;
+
             color: var(--texto);
+
+            background:
+                radial-gradient(
+                    circle at 10% 10%,
+                    rgba(74, 144, 217, 0.14),
+                    transparent 30%
+                ),
+
+                radial-gradient(
+                    circle at 90% 20%,
+                    rgba(46, 196, 182, 0.13),
+                    transparent 30%
+                ),
+
+                var(--fundo);
         }
 
+
         /* =========================================================
-           CABEÇALHO
-           ========================================================= */
+           HEADER
+        ========================================================= */
 
         header {
-            background:
-                linear-gradient(135deg, #0A2E5C 0%, #123f76 100%);
-            color: white;
-            padding: 32px 25px 30px;
+
             position: relative;
+
             overflow: hidden;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #071f3e 0%,
+                    var(--azul) 55%,
+                    #124b82 100%
+                );
+
+            color: white;
+
+            padding:
+                32px
+                6vw
+                38px;
+
+            box-shadow:
+                0 10px 40px rgba(10, 46, 92, 0.20);
         }
+
+
+        header::before {
+
+            content: "";
+
+            position: absolute;
+
+            width: 450px;
+            height: 450px;
+
+            right: -180px;
+            top: -280px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(46, 196, 182, 0.12);
+        }
+
 
         header::after {
+
             content: "";
+
             position: absolute;
-            width: 300px;
-            height: 300px;
+
+            width: 250px;
+            height: 250px;
+
+            left: 30%;
+            bottom: -210px;
+
             border-radius: 50%;
-            background: rgba(46, 196, 182, 0.12);
-            right: -80px;
-            top: -130px;
+
+            background:
+                rgba(74, 144, 217, 0.15);
         }
 
-        header .conteudo-header {
-            max-width: 1200px;
-            margin: auto;
+
+        .header-conteudo {
+
             position: relative;
-            z-index: 1;
+
+            z-index: 2;
+
+            max-width: 1400px;
+
+            margin: auto;
         }
 
-        .etiqueta {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.13);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 6px 12px;
-            border-radius: 20px;
+
+        .tag-projeto {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            padding:
+                7px
+                13px;
+
+            margin-bottom: 16px;
+
+            border:
+                1px solid
+                rgba(255,255,255,0.18);
+
+            border-radius: 999px;
+
+            background:
+                rgba(255,255,255,0.08);
+
+            backdrop-filter:
+                blur(10px);
+
             font-size: 12px;
-            font-weight: bold;
-            letter-spacing: 0.5px;
-            margin-bottom: 12px;
+
+            font-weight: 700;
+
+            letter-spacing: 0.8px;
+
+            text-transform: uppercase;
+
+            color:
+                rgba(255,255,255,0.90);
         }
+
+
+        .ponto-status {
+
+            width: 8px;
+            height: 8px;
+
+            border-radius: 50%;
+
+            background: var(--verde);
+
+            box-shadow:
+                0 0 12px
+                rgba(46,196,182,0.8);
+        }
+
 
         header h1 {
-            margin: 0;
-            font-size: clamp(26px, 4vw, 40px);
-            line-height: 1.15;
+
+            max-width: 850px;
+
+            font-size:
+                clamp(30px, 4vw, 52px);
+
+            line-height: 1.08;
+
+            letter-spacing: -1.8px;
+
+            font-weight: 800;
         }
+
 
         header p {
-            margin: 10px 0 0;
-            font-size: 16px;
-            opacity: 0.88;
+
+            max-width: 720px;
+
+            margin-top: 14px;
+
+            color:
+                rgba(255,255,255,0.72);
+
+            font-size:
+                clamp(14px, 1.5vw, 18px);
+
+            line-height: 1.6;
         }
+
 
         /* =========================================================
-           CONTEÚDO
-           ========================================================= */
+           MAIN
+        ========================================================= */
 
         main {
-            max-width: 1200px;
-            margin: 30px auto 50px;
-            padding: 0 20px;
+
+            width: min(1400px, 94%);
+
+            margin:
+                32px
+                auto
+                70px;
         }
+
 
         /* =========================================================
            STATUS
-           ========================================================= */
+        ========================================================= */
 
         .status-card {
-            background: white;
-            border: 1px solid var(--borda);
-            border-radius: 16px;
-            padding: 15px 18px;
+
             display: flex;
+
             align-items: center;
+
             justify-content: space-between;
+
             gap: 20px;
-            margin-bottom: 18px;
-            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
+
+            padding:
+                17px
+                21px;
+
+            margin-bottom: 20px;
+
+            border:
+                1px solid
+                var(--borda);
+
+            border-radius: 18px;
+
+            background:
+                rgba(255,255,255,0.78);
+
+            backdrop-filter:
+                blur(16px);
+
+            box-shadow:
+                var(--sombra-pequena);
         }
+
 
         .status-esquerda {
+
             display: flex;
+
             align-items: center;
-            gap: 12px;
+
+            gap: 13px;
         }
 
-        .indicador {
-            width: 11px;
-            height: 11px;
+
+        .status-indicador {
+
+            width: 12px;
+            height: 12px;
+
             border-radius: 50%;
-            background: #9ca3af;
-            flex-shrink: 0;
+
+            background: #94a3b8;
         }
 
-        .indicador.conectado {
+
+        .status-indicador.online {
+
             background: var(--verde);
-            box-shadow: 0 0 0 5px rgba(46, 196, 182, 0.14);
+
+            box-shadow:
+                0 0 0 5px
+                rgba(46,196,182,0.12),
+
+                0 0 16px
+                rgba(46,196,182,0.55);
         }
 
-        .indicador.erro {
-            background: #dc3545;
-        }
 
         .status-titulo {
+
             font-size: 12px;
-            color: var(--cinza);
-            margin-bottom: 2px;
+
+            color:
+                var(--texto-secundario);
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.7px;
+
+            font-weight: 700;
         }
+
 
         .status-texto {
+
+            margin-top: 2px;
+
             font-size: 14px;
-            font-weight: bold;
+
+            font-weight: 600;
         }
 
-        .status-direita {
-            color: var(--cinza);
-            font-size: 13px;
+
+        .status-live {
+
+            display: none;
+
+            padding:
+                7px
+                11px;
+
+            border-radius: 999px;
+
+            background:
+                rgba(46,196,182,0.10);
+
+            color:
+                #148b80;
+
+            font-size: 11px;
+
+            font-weight: 800;
+
+            letter-spacing: 0.7px;
         }
 
-        /* =========================================================
-           CARDS DE INFORMAÇÃO
-           ========================================================= */
 
-        .cards {
-            display: grid;
-            grid-template-columns: 1.4fr 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 18px;
-        }
-
-        .card {
-            background: white;
-            border: 1px solid var(--borda);
-            border-radius: 16px;
-            padding: 22px;
-            box-shadow: 0 4px 18px rgba(15, 23, 42, 0.05);
-        }
-
-        .card-principal {
-            background: linear-gradient(
-                135deg,
-                #ffffff 0%,
-                #f3fbfa 100%
-            );
-        }
-
-        .card-label {
-            font-size: 13px;
-            color: var(--cinza);
-            margin-bottom: 8px;
-        }
-
-        .temperatura-atual {
-            display: flex;
-            align-items: baseline;
-            gap: 7px;
-        }
-
-        .temperatura-atual .numero {
-            font-size: clamp(38px, 5vw, 56px);
-            font-weight: bold;
-            color: var(--azul);
-            line-height: 1;
-        }
-
-        .temperatura-atual .unidade {
-            font-size: 20px;
-            color: var(--cinza);
-        }
-
-        .card-valor {
-            font-size: 28px;
-            font-weight: bold;
-            color: var(--azul);
-        }
-
-        .card-subtexto {
-            font-size: 12px;
-            color: var(--cinza);
-            margin-top: 5px;
-        }
-
-        /* =========================================================
-           ÁREA DO GRÁFICO
-           ========================================================= */
-
-        .grafico-container {
-            background: white;
-            border: 1px solid var(--borda);
-            border-radius: 18px;
-            padding: 24px;
-            box-shadow: 0 5px 22px rgba(15, 23, 42, 0.06);
-        }
-
-        .grafico-topo {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-            margin-bottom: 18px;
-        }
-
-        .grafico-titulo h2 {
-            margin: 0;
-            font-size: 21px;
-        }
-
-        .grafico-titulo p {
-            margin: 5px 0 0;
-            color: var(--cinza);
-            font-size: 13px;
-        }
-
-        .legenda {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            font-size: 13px;
-            color: #4b5563;
-        }
-
-        .legenda-ponto {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: var(--azul-claro);
-        }
-
-        .canvas-wrapper {
-            position: relative;
-            width: 100%;
-            height: 500px;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #fbfcfd;
-        }
-
-        canvas {
-            width: 100%;
-            height: 100%;
+        .status-live.visivel {
             display: block;
         }
 
+
+        /* =========================================================
+           CARDS DE INFORMAÇÃO
+        ========================================================= */
+
+        .painel-informacoes {
+
+            display: grid;
+
+            grid-template-columns:
+                1.4fr
+                1fr
+                1fr;
+
+            gap: 18px;
+
+            margin-bottom: 20px;
+        }
+
+
+        .card-info {
+
+            position: relative;
+
+            overflow: hidden;
+
+            min-height: 145px;
+
+            padding: 24px;
+
+            border:
+                1px solid
+                var(--borda);
+
+            border-radius: 22px;
+
+            background:
+                rgba(255,255,255,0.82);
+
+            backdrop-filter:
+                blur(16px);
+
+            box-shadow:
+                var(--sombra-pequena);
+
+            transition:
+                transform 0.25s ease,
+                box-shadow 0.25s ease;
+        }
+
+
+        .card-info:hover {
+
+            transform:
+                translateY(-3px);
+
+            box-shadow:
+                var(--sombra);
+        }
+
+
+        .card-info::after {
+
+            content: "";
+
+            position: absolute;
+
+            width: 130px;
+            height: 130px;
+
+            right: -60px;
+            bottom: -70px;
+
+            border-radius: 50%;
+
+            background:
+                rgba(74,144,217,0.06);
+        }
+
+
+        .card-label {
+
+            position: relative;
+
+            z-index: 2;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            text-transform: uppercase;
+
+            letter-spacing: 0.7px;
+
+            color:
+                var(--texto-secundario);
+        }
+
+
+        .temperatura-grande {
+
+            position: relative;
+
+            z-index: 2;
+
+            margin-top: 8px;
+
+            font-size:
+                clamp(38px, 4vw, 56px);
+
+            font-weight: 800;
+
+            letter-spacing: -2px;
+
+            color:
+                var(--azul);
+        }
+
+
+        .temperatura-grande span {
+
+            font-size: 0.48em;
+
+            letter-spacing: 0;
+
+            color:
+                var(--texto-secundario);
+        }
+
+
+        .valor-secundario {
+
+            position: relative;
+
+            z-index: 2;
+
+            margin-top: 13px;
+
+            font-size: 25px;
+
+            font-weight: 750;
+
+            color:
+                var(--texto);
+        }
+
+
+        .valor-unidade {
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            color:
+                var(--texto-secundario);
+        }
+
+
+        /* =========================================================
+           GRÁFICO
+        ========================================================= */
+
+        .grafico-card {
+
+            overflow: hidden;
+
+            border:
+                1px solid
+                var(--borda);
+
+            border-radius: 26px;
+
+            background:
+                rgba(255,255,255,0.90);
+
+            box-shadow:
+                var(--sombra);
+        }
+
+
+        .grafico-topo {
+
+            display: flex;
+
+            justify-content: space-between;
+
+            align-items: flex-start;
+
+            gap: 20px;
+
+            padding:
+                25px
+                28px
+                18px;
+        }
+
+
+        .grafico-titulo h2 {
+
+            font-size: 22px;
+
+            letter-spacing: -0.5px;
+        }
+
+
+        .grafico-titulo p {
+
+            margin-top: 5px;
+
+            color:
+                var(--texto-secundario);
+
+            font-size: 13px;
+        }
+
+
+        .legenda {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            padding:
+                8px
+                12px;
+
+            border-radius: 999px;
+
+            background:
+                #f3f7fb;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            color:
+                var(--texto-secundario);
+        }
+
+
+        .legenda-cor {
+
+            width: 9px;
+            height: 9px;
+
+            border-radius: 50%;
+
+            background:
+                var(--azul-claro);
+
+            box-shadow:
+                0 0 10px
+                rgba(74,144,217,0.45);
+        }
+
+
+        .canvas-wrapper {
+
+            position: relative;
+
+            height: 550px;
+
+            padding:
+                0
+                18px
+                18px;
+        }
+
+
+        canvas {
+
+            display: block;
+
+            width: 100%;
+
+            height: 100%;
+        }
+
+
         /* =========================================================
            CONTROLES
-           ========================================================= */
+        ========================================================= */
 
-        .controles {
+        .barra-controles {
+
             display: flex;
+
             align-items: center;
+
             justify-content: space-between;
-            gap: 15px;
-            margin-top: 20px;
-            padding-top: 18px;
-            border-top: 1px solid var(--borda);
+
+            gap: 20px;
+
+            padding:
+                18px
+                24px;
+
+            border-top:
+                1px solid
+                var(--borda);
+
+            background:
+                rgba(247,250,253,0.75);
         }
 
-        .grupo-botoes {
-            display: flex;
-            gap: 10px;
-        }
 
-        button {
-            border: none;
-            border-radius: 10px;
-            padding: 12px 22px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.18s ease;
-        }
+        .controle-descricao {
 
-        button:hover:not(:disabled) {
-            transform: translateY(-1px);
-        }
+            color:
+                var(--texto-secundario);
 
-        button:active:not(:disabled) {
-            transform: translateY(0);
-        }
+            font-size: 12px;
 
-        #iniciar {
-            background: var(--verde);
-            color: white;
-            box-shadow: 0 4px 12px rgba(46, 196, 182, 0.22);
-        }
-
-        #parar {
-            background: #e8edf2;
-            color: #374151;
-        }
-
-        #parar.ativo {
-            background: #dc3545;
-            color: white;
-        }
-
-        button:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .estado-teste {
-            font-size: 13px;
-            color: var(--cinza);
-        }
-
-        /* =========================================================
-           INFORMAÇÃO
-           ========================================================= */
-
-        .info {
-            margin-top: 18px;
-            padding: 15px 17px;
-            background: #f4f7fa;
-            border: 1px solid var(--borda);
-            border-radius: 12px;
-            color: #5b6472;
-            font-size: 13px;
             line-height: 1.5;
         }
 
-        /* =========================================================
-           RESPONSIVO
-           ========================================================= */
 
-        @media (max-width: 850px) {
+        .botoes {
 
-            .cards {
-                grid-template-columns: 1fr 1fr;
-            }
+            display: flex;
 
-            .card-principal {
-                grid-column: 1 / -1;
-            }
-
-            .grafico-topo {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .controles {
-                align-items: flex-start;
-                flex-direction: column;
-            }
+            gap: 10px;
         }
 
-        @media (max-width: 600px) {
 
-            main {
-                margin-top: 20px;
-                padding: 0 12px;
+        button {
+
+            border: none;
+
+            border-radius: 12px;
+
+            padding:
+                12px
+                20px;
+
+            font-size: 13px;
+
+            font-weight: 750;
+
+            cursor: pointer;
+
+            transition:
+                transform 0.18s ease,
+                box-shadow 0.18s ease,
+                opacity 0.18s ease;
+        }
+
+
+        button:hover:not(:disabled) {
+
+            transform:
+                translateY(-2px);
+        }
+
+
+        button:active:not(:disabled) {
+
+            transform:
+                translateY(0);
+        }
+
+
+        button:disabled {
+
+            opacity: 0.42;
+
+            cursor: not-allowed;
+        }
+
+
+        #iniciar {
+
+            color: white;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #20b8a9,
+                    #2EC4B6
+                );
+
+            box-shadow:
+                0 7px 18px
+                rgba(46,196,182,0.25);
+        }
+
+
+        #parar {
+
+            color:
+                #b42318;
+
+            background:
+                #fff0ef;
+
+            border:
+                1px solid
+                #ffd6d2;
+        }
+
+
+        /* =========================================================
+           INFORMAÇÕES CIENTÍFICAS
+        ========================================================= */
+
+        .rodape-informativo {
+
+            display: grid;
+
+            grid-template-columns:
+                1fr
+                1fr;
+
+            gap: 18px;
+
+            margin-top: 20px;
+        }
+
+
+        .info-box {
+
+            padding: 23px;
+
+            border:
+                1px solid
+                var(--borda);
+
+            border-radius: 20px;
+
+            background:
+                rgba(255,255,255,0.75);
+
+            box-shadow:
+                var(--sombra-pequena);
+        }
+
+
+        .info-box h3 {
+
+            font-size: 15px;
+
+            margin-bottom: 8px;
+        }
+
+
+        .info-box p {
+
+            color:
+                var(--texto-secundario);
+
+            font-size: 13px;
+
+            line-height: 1.65;
+        }
+
+
+        /* =========================================================
+           RESPONSIVIDADE
+        ========================================================= */
+
+        @media (max-width: 900px) {
+
+            .painel-informacoes {
+
+                grid-template-columns:
+                    1fr 1fr;
             }
 
-            header {
-                padding: 25px 18px;
+            .card-info:first-child {
+
+                grid-column:
+                    1 / -1;
             }
 
-            .cards {
-                grid-template-columns: 1fr;
-            }
+            .rodape-informativo {
 
-            .card-principal {
-                grid-column: auto;
-            }
-
-            .grafico-container {
-                padding: 15px;
+                grid-template-columns:
+                    1fr;
             }
 
             .canvas-wrapper {
-                height: 380px;
+
+                height: 450px;
+            }
+        }
+
+
+        @media (max-width: 650px) {
+
+            header {
+
+                padding:
+                    26px
+                    5%
+                    30px;
             }
 
-            .grupo-botoes {
+            main {
+
+                width: 92%;
+
+                margin-top: 20px;
+            }
+
+            .status-card {
+
+                align-items:
+                    flex-start;
+
+                flex-direction:
+                    column;
+            }
+
+            .painel-informacoes {
+
+                grid-template-columns:
+                    1fr;
+            }
+
+            .card-info:first-child {
+
+                grid-column:
+                    auto;
+            }
+
+            .grafico-topo {
+
+                flex-direction:
+                    column;
+            }
+
+            .canvas-wrapper {
+
+                height: 380px;
+
+                padding:
+                    0
+                    5px
+                    10px;
+            }
+
+            .barra-controles {
+
+                align-items:
+                    stretch;
+
+                flex-direction:
+                    column;
+            }
+
+            .botoes {
+
                 width: 100%;
             }
 
             button {
+
                 flex: 1;
             }
         }
+
     </style>
 </head>
 
+
 <body>
+
+
+<!-- ============================================================
+     CABEÇALHO
+============================================================ -->
 
 <header>
 
-    <div class="conteudo-header">
+    <div class="header-conteudo">
 
-        <div class="etiqueta">
-            PROJETO CIENTÍFICO
+        <div class="tag-projeto">
+
+            <span class="ponto-status"></span>
+
+            PROJETO DE CIÊNCIA E SUSTENTABILIDADE
+
         </div>
 
+
         <h1>
-            O "Efeito Estufa" na Sala de Aula
+            O “Efeito Estufa” na Sala de Aula
         </h1>
 
+
         <p>
-            Monitoramento experimental de temperatura em tempo real
+            Monitoramento experimental da variação de temperatura
+            utilizando sensor infravermelho e ESP32.
         </p>
 
     </div>
@@ -441,146 +981,167 @@
 </header>
 
 
+<!-- ============================================================
+     CONTEÚDO
+============================================================ -->
+
 <main>
 
-    <!-- =========================================================
-         STATUS
-         ========================================================= -->
+
+    <!-- STATUS -->
 
     <div class="status-card">
 
         <div class="status-esquerda">
 
             <div
-                class="indicador"
-                id="indicadorStatus">
+                class="status-indicador"
+                id="statusIndicador">
             </div>
+
 
             <div>
 
                 <div class="status-titulo">
-                    STATUS DA CONEXÃO
+                    Comunicação do experimento
                 </div>
 
                 <div
                     class="status-texto"
                     id="statusTexto">
+
                     Conectando ao servidor...
+
                 </div>
 
             </div>
 
         </div>
 
+
         <div
-            class="status-direita"
-            id="statusDetalhe">
-            Aguardando ESP32
+            class="status-live"
+            id="statusLive">
+
+            ● DADOS AO VIVO
+
         </div>
 
     </div>
 
 
-    <!-- =========================================================
-         CARDS
-         ========================================================= -->
 
-    <div class="cards">
+    <!-- ========================================================
+         INDICADORES
+    ======================================================== -->
 
-        <div class="card card-principal">
+    <section class="painel-informacoes">
+
+
+        <!-- TEMPERATURA -->
+
+        <div class="card-info">
 
             <div class="card-label">
-                TEMPERATURA ATUAL — CÁPSULA 1
+                Temperatura atual · Cápsula 1
             </div>
 
-            <div class="temperatura-atual">
 
-                <span
-                    class="numero"
-                    id="temperatura1">
-                    --
-                </span>
+            <div
+                class="temperatura-grande"
+                id="temperatura1">
 
-                <span class="unidade">
-                    °C
-                </span>
+                -- <span>°C</span>
 
-            </div>
-
-            <div class="card-subtexto">
-                Última leitura recebida pelo MLX90614
             </div>
 
         </div>
 
 
-        <div class="card">
+
+        <!-- TEMPO -->
+
+        <div class="card-info">
 
             <div class="card-label">
-                TEMPO DE EXPERIMENTO
+                Tempo de experimento
             </div>
 
+
             <div
-                class="card-valor"
+                class="valor-secundario"
                 id="tempoAtual">
-                0 s
-            </div>
 
-            <div class="card-subtexto">
-                Tempo decorrido
+                0.0
+
+                <span class="valor-unidade">
+                    segundos
+                </span>
+
             </div>
 
         </div>
 
 
-        <div class="card">
+
+        <!-- LEITURAS -->
+
+        <div class="card-info">
 
             <div class="card-label">
-                LEITURAS RECEBIDAS
+                Leituras recebidas
+            </div>
+
+
+            <div
+                class="valor-secundario"
+                id="quantidadeLeituras">
+
+                0
+
             </div>
 
             <div
-                class="card-valor"
-                id="quantidadeLeituras">
-                0
-            </div>
+                class="valor-unidade">
 
-            <div class="card-subtexto">
-                Dados registrados no teste
+                dados registrados
+
             </div>
 
         </div>
 
-    </div>
+
+    </section>
 
 
-    <!-- =========================================================
+
+    <!-- ========================================================
          GRÁFICO
-         ========================================================= -->
+    ======================================================== -->
 
-    <div class="grafico-container">
+    <section class="grafico-card">
+
 
         <div class="grafico-topo">
 
             <div class="grafico-titulo">
 
                 <h2>
-                    Temperatura em tempo real
+                    Variação da temperatura
                 </h2>
 
                 <p>
-                    Variação da temperatura ao longo do experimento
+                    Temperatura medida ao longo do tempo
                 </p>
 
             </div>
 
+
             <div class="legenda">
 
-                <span class="legenda-ponto"></span>
+                <span class="legenda-cor"></span>
 
-                <span>
-                    Cápsula 1
-                </span>
+                Cápsula 1
 
             </div>
 
@@ -594,54 +1155,95 @@
         </div>
 
 
-        <!-- =====================================================
-             CONTROLES
-             ===================================================== -->
+        <!-- CONTROLES -->
 
-        <div class="controles">
+        <div class="barra-controles">
 
-            <div class="grupo-botoes">
+            <div class="controle-descricao">
+
+                Inicie o teste para registrar uma nova série
+                experimental.
+
+            </div>
+
+
+            <div class="botoes">
 
                 <button id="iniciar">
-                    Iniciar teste
+
+                    Iniciar experimento
+
                 </button>
+
 
                 <button
                     id="parar"
                     disabled>
-                    Parar
+
+                    Encerrar
+
                 </button>
 
             </div>
 
-            <div
-                class="estado-teste"
-                id="estadoTeste">
-                Teste não iniciado
-            </div>
+        </div>
+
+    </section>
+
+
+
+    <!-- ========================================================
+         INFORMAÇÕES
+    ======================================================== -->
+
+    <section class="rodape-informativo">
+
+
+        <div class="info-box">
+
+            <h3>
+                Instrumentação
+            </h3>
+
+            <p>
+                Os dados são obtidos pelo sensor MLX90614,
+                conectado ao ESP32. As leituras são enviadas
+                pela rede e apresentadas neste painel em tempo
+                real.
+            </p>
 
         </div>
 
 
-        <div class="info">
+        <div class="info-box">
 
-            Os dados exibidos são recebidos em tempo real pelo
-            sensor <strong>MLX90614</strong>, conectado ao
-            <strong>ESP32</strong>. O gráfico é atualizado
-            continuamente conforme novas leituras são recebidas.
+            <h3>
+                Sobre o experimento
+            </h3>
+
+            <p>
+                O sistema permite acompanhar visualmente a
+                evolução da temperatura durante o procedimento,
+                facilitando a comparação dos resultados
+                experimentais.
+            </p>
 
         </div>
 
-    </div>
+
+    </section>
+
 
 </main>
 
 
+
 <script>
+
 
 /* ================================================================
    ELEMENTOS
-   ================================================================ */
+================================================================ */
 
 const canvas =
     document.getElementById("grafico");
@@ -649,37 +1251,40 @@ const canvas =
 const ctx =
     canvas.getContext("2d");
 
+
 const statusTexto =
     document.getElementById("statusTexto");
 
-const statusDetalhe =
-    document.getElementById("statusDetalhe");
+const statusIndicador =
+    document.getElementById("statusIndicador");
 
-const indicadorStatus =
-    document.getElementById("indicadorStatus");
+const statusLive =
+    document.getElementById("statusLive");
+
 
 const temperatura1Elemento =
     document.getElementById("temperatura1");
 
+
 const tempoAtualElemento =
     document.getElementById("tempoAtual");
+
 
 const quantidadeLeiturasElemento =
     document.getElementById("quantidadeLeituras");
 
+
 const botaoIniciar =
     document.getElementById("iniciar");
+
 
 const botaoParar =
     document.getElementById("parar");
 
-const estadoTeste =
-    document.getElementById("estadoTeste");
-
 
 /* ================================================================
    DADOS
-   ================================================================ */
+================================================================ */
 
 let executando = false;
 
@@ -687,26 +1292,26 @@ let dadosCapsula1 = [];
 
 let tempoInicial = null;
 
-let ultimoTempo = 0;
+let temperaturaAtual = null;
 
 let temperaturaAlvo = null;
 
-let temperaturaVisual = null;
+let ultimoTempo = 0;
 
 
 /*
- * Quantidade máxima de pontos utilizados para desenhar.
+ * Limitamos os pontos desenhados.
  *
- * O ESP32 pode continuar enviando 10 leituras/s,
- * mas não precisamos redesenhar milhares de pontos.
+ * O ESP32 pode enviar 10 leituras por segundo.
+ * Não precisamos desenhar milhares de pontos.
  */
 
-const MAX_PONTOS_GRAFICO = 500;
+const MAX_PONTOS_GRAFICO = 600;
 
 
 /* ================================================================
    CANVAS
-   ================================================================ */
+================================================================ */
 
 function ajustarCanvas() {
 
@@ -719,11 +1324,13 @@ function ajustarCanvas() {
     const escala =
         window.devicePixelRatio || 1;
 
+
     canvas.width =
         largura * escala;
 
     canvas.height =
         altura * escala;
+
 
     ctx.setTransform(
         escala,
@@ -734,8 +1341,10 @@ function ajustarCanvas() {
         0
     );
 
+
     desenharGrafico();
 }
+
 
 window.addEventListener(
     "resize",
@@ -745,54 +1354,38 @@ window.addEventListener(
 
 /* ================================================================
    INTERPOLAÇÃO
-   ================================================================ */
+================================================================ */
 
-function aproximar(valorAtual, valorAlvo) {
+function aproximar(atual, alvo) {
 
-    if (valorAlvo === null) {
-        return valorAtual;
-    }
+    if (atual === null)
+        return alvo;
 
-    if (valorAtual === null) {
-        return valorAlvo;
-    }
+    if (alvo === null)
+        return atual;
 
-    /*
-     * Valor maior = animação mais rápida.
-     */
 
-    return valorAtual +
-        (valorAlvo - valorAtual) *
-        0.25;
+    return atual +
+        (alvo - atual) * 0.20;
 }
 
 
 /* ================================================================
-   REDUZIR PONTOS PARA O GRÁFICO
-   ================================================================ */
+   PONTOS VISUAIS
+================================================================ */
 
-function obterPontosVisuais() {
+function obterPontosVisuais(dados) {
 
-    if (
-        dadosCapsula1.length <=
-        MAX_PONTOS_GRAFICO
-    ) {
+    if (dados.length <= MAX_PONTOS_GRAFICO)
+        return dados;
 
-        return dadosCapsula1;
-    }
 
-    /*
-     * Mantém somente uma amostra dos pontos.
-     *
-     * Isso impede que o canvas fique cada vez
-     * mais pesado durante experimentos longos.
-     */
+    const resultado = [];
 
     const passo =
-        dadosCapsula1.length /
-        MAX_PONTOS_GRAFICO;
+        (dados.length - 1) /
+        (MAX_PONTOS_GRAFICO - 1);
 
-    const pontos = [];
 
     for (
         let i = 0;
@@ -801,36 +1394,21 @@ function obterPontosVisuais() {
     ) {
 
         const indice =
-            Math.floor(i * passo);
+            Math.round(i * passo);
 
-        pontos.push(
-            dadosCapsula1[indice]
+        resultado.push(
+            dados[indice]
         );
     }
 
-    /*
-     * Garante que o último ponto seja mantido.
-     */
 
-    const ultimo =
-        dadosCapsula1[
-            dadosCapsula1.length - 1
-        ];
-
-    if (
-        pontos[pontos.length - 1] !== ultimo
-    ) {
-
-        pontos.push(ultimo);
-    }
-
-    return pontos;
+    return resultado;
 }
 
 
 /* ================================================================
    GRÁFICO
-   ================================================================ */
+================================================================ */
 
 function desenharGrafico() {
 
@@ -840,6 +1418,7 @@ function desenharGrafico() {
     const altura =
         canvas.clientHeight;
 
+
     ctx.clearRect(
         0,
         0,
@@ -848,9 +1427,12 @@ function desenharGrafico() {
     );
 
 
-    const margemEsquerda = 70;
+    const margemEsquerda = 66;
+
     const margemDireita = 25;
+
     const margemSuperior = 25;
+
     const margemInferior = 55;
 
 
@@ -859,42 +1441,36 @@ function desenharGrafico() {
         margemEsquerda -
         margemDireita;
 
+
     const graficoAltura =
         altura -
         margemSuperior -
         margemInferior;
 
 
-    /* ============================================================
-       FUNDO
-       ============================================================ */
-
-    ctx.fillStyle = "#fbfcfd";
-
-    ctx.fillRect(
-        0,
-        0,
-        largura,
-        altura
-    );
+    const dados =
+        obterPontosVisuais(
+            dadosCapsula1
+        );
 
 
     /* ============================================================
        SEM DADOS
-       ============================================================ */
+    ============================================================ */
 
-    if (dadosCapsula1.length === 0) {
+    if (dados.length === 0) {
 
-        ctx.fillStyle = "#8a94a3";
+        ctx.textAlign = "center";
+
+        ctx.textBaseline = "middle";
+
+        ctx.fillStyle = "#94a3b8";
 
         ctx.font =
-            "15px Arial";
-
-        ctx.textAlign =
-            "center";
+            "600 14px Arial";
 
         ctx.fillText(
-            "Aguardando dados do ESP32...",
+            "Aguardando o início do experimento...",
             largura / 2,
             altura / 2
         );
@@ -904,29 +1480,19 @@ function desenharGrafico() {
 
 
     /* ============================================================
-       PONTOS
-       ============================================================ */
-
-    const pontos =
-        obterPontosVisuais();
-
-
-    /* ============================================================
-       TEMPERATURAS
-       ============================================================ */
+       TEMPERATURA
+    ============================================================ */
 
     let temperaturas =
-        pontos.map(
+        dados.map(
             p => p.temperatura
         );
 
 
-    if (
-        temperaturaVisual !== null
-    ) {
+    if (temperaturaAtual !== null) {
 
         temperaturas.push(
-            temperaturaVisual
+            temperaturaAtual
         );
     }
 
@@ -938,76 +1504,68 @@ function desenharGrafico() {
         Math.max(...temperaturas);
 
 
-    /*
-     * Margem automática.
-     */
-
     const faixa =
         Math.max(
-            temperaturaMax -
-            temperaturaMin,
-            1
+            temperaturaMax - temperaturaMin,
+            2
         );
 
+
     temperaturaMin -=
-        Math.max(faixa * 0.12, 0.5);
+        faixa * 0.15;
 
     temperaturaMax +=
-        Math.max(faixa * 0.12, 0.5);
+        faixa * 0.15;
 
 
     /* ============================================================
        TEMPO
-       ============================================================ */
+    ============================================================ */
 
     let tempoMax =
         Math.max(
             ultimoTempo,
-            pontos[pontos.length - 1].tempo
-        );
-
-
-    /*
-     * Mantém pelo menos 10 segundos.
-     */
-
-    tempoMax =
-        Math.max(
-            tempoMax,
             10
         );
 
 
     /* ============================================================
        CONVERSÃO
-       ============================================================ */
+    ============================================================ */
 
-    function converterX(t) {
+    function converterX(tempo) {
 
         return margemEsquerda +
-            (t / tempoMax) *
+            (tempo / tempoMax) *
             graficoLargura;
     }
 
 
-    function converterY(temp) {
+    function converterY(temperatura) {
 
         return margemSuperior +
+
             (
-                (temperaturaMax - temp) /
+                (temperaturaMax - temperatura) /
                 (temperaturaMax - temperaturaMin)
             ) *
+
             graficoAltura;
     }
 
 
     /* ============================================================
-       GRADE HORIZONTAL
-       ============================================================ */
+       GRADE
+    ============================================================ */
+
+    ctx.lineWidth = 1;
+
+    ctx.font =
+        "12px Arial";
+
 
     const linhas = 6;
 
-    ctx.lineWidth = 1;
 
     for (
         let i = 0;
@@ -1017,14 +1575,14 @@ function desenharGrafico() {
 
         const y =
             margemSuperior +
-            (graficoAltura / linhas) *
-            i;
+            (graficoAltura / linhas) * i;
+
+
+        ctx.strokeStyle =
+            "rgba(100,116,139,0.12)";
 
 
         ctx.beginPath();
-
-        ctx.strokeStyle =
-            "#e8edf2";
 
         ctx.moveTo(
             margemEsquerda,
@@ -1041,61 +1599,60 @@ function desenharGrafico() {
 
         const valor =
             temperaturaMax -
+
             (
-                (temperaturaMax -
-                temperaturaMin) *
+                (temperaturaMax - temperaturaMin) *
                 i /
                 linhas
             );
 
 
         ctx.fillStyle =
-            "#667085";
-
-        ctx.font =
-            "12px Arial";
+            "#64748b";
 
         ctx.textAlign =
             "right";
 
+        ctx.textBaseline =
+            "middle";
+
+
         ctx.fillText(
             valor.toFixed(1) + " °C",
-            margemEsquerda - 9,
-            y + 4
+            margemEsquerda - 10,
+            y
         );
     }
 
 
     /* ============================================================
-       GRADE VERTICAL / EIXO X
-       ============================================================ */
+       EIXO X
+    ============================================================ */
 
-    let intervaloTempo = 5;
-
-    if (tempoMax > 60)
-        intervaloTempo = 10;
-
-    if (tempoMax > 180)
-        intervaloTempo = 30;
-
-    if (tempoMax > 600)
-        intervaloTempo = 60;
+    const divisõesX = 6;
 
 
     for (
-        let t = 0;
-        t <= tempoMax;
-        t += intervaloTempo
+        let i = 0;
+        i <= divisõesX;
+        i++
     ) {
 
+        const tempo =
+            tempoMax *
+            i /
+            divisõesX;
+
+
         const x =
-            converterX(t);
+            converterX(tempo);
+
+
+        ctx.strokeStyle =
+            "rgba(100,116,139,0.09)";
 
 
         ctx.beginPath();
-
-        ctx.strokeStyle =
-            "#eef1f4";
 
         ctx.moveTo(
             x,
@@ -1111,241 +1668,270 @@ function desenharGrafico() {
 
 
         ctx.fillStyle =
-            "#667085";
-
-        ctx.font =
-            "12px Arial";
+            "#64748b";
 
         ctx.textAlign =
             "center";
 
+        ctx.textBaseline =
+            "top";
+
+
         ctx.fillText(
-            t + " s",
+            tempo.toFixed(0) + " s",
             x,
-            altura - margemInferior + 22
+            altura - margemInferior + 13
         );
     }
 
 
     /* ============================================================
-       EIXOS
-       ============================================================ */
+       LINHA DO GRÁFICO
+    ============================================================ */
 
-    ctx.strokeStyle =
-        "#aeb7c2";
+    const pontos =
+        dados.map(p => ({
 
-    ctx.lineWidth = 1.5;
+            x:
+                converterX(p.tempo),
+
+            y:
+                converterY(p.temperatura)
+
+        }));
+
+
+    if (pontos.length === 0)
+        return;
+
+
+    /*
+     * Criar curva suavizada.
+     */
 
     ctx.beginPath();
 
     ctx.moveTo(
-        margemEsquerda,
-        margemSuperior
+        pontos[0].x,
+        pontos[0].y
     );
 
+
+    for (
+        let i = 1;
+        i < pontos.length;
+        i++
+    ) {
+
+        const anterior =
+            pontos[i - 1];
+
+        const atual =
+            pontos[i];
+
+
+        const meioX =
+            (anterior.x + atual.x) / 2;
+
+        const meioY =
+            (anterior.y + atual.y) / 2;
+
+
+        ctx.quadraticCurveTo(
+            anterior.x,
+            anterior.y,
+            meioX,
+            meioY
+        );
+    }
+
+
+    const ultimo =
+        pontos[pontos.length - 1];
+
+
     ctx.lineTo(
-        margemEsquerda,
+        ultimo.x,
+        ultimo.y
+    );
+
+
+    /* ============================================================
+       ÁREA ABAIXO DA CURVA
+    ============================================================ */
+
+    const caminhoArea =
+        new Path2D();
+
+
+    caminhoArea.moveTo(
+        pontos[0].x,
+        pontos[0].y
+    );
+
+
+    for (
+        let i = 1;
+        i < pontos.length;
+        i++
+    ) {
+
+        const anterior =
+            pontos[i - 1];
+
+        const atual =
+            pontos[i];
+
+
+        const meioX =
+            (anterior.x + atual.x) / 2;
+
+        const meioY =
+            (anterior.y + atual.y) / 2;
+
+
+        caminhoArea.quadraticCurveTo(
+            anterior.x,
+            anterior.y,
+            meioX,
+            meioY
+        );
+    }
+
+
+    caminhoArea.lineTo(
+        ultimo.x,
         altura - margemInferior
     );
 
-    ctx.lineTo(
-        largura - margemDireita,
+
+    caminhoArea.lineTo(
+        pontos[0].x,
         altura - margemInferior
     );
+
+
+    caminhoArea.closePath();
+
+
+    const gradiente =
+        ctx.createLinearGradient(
+            0,
+            margemSuperior,
+            0,
+            altura - margemInferior
+        );
+
+
+    gradiente.addColorStop(
+        0,
+        "rgba(74,144,217,0.20)"
+    );
+
+
+    gradiente.addColorStop(
+        1,
+        "rgba(74,144,217,0.01)"
+    );
+
+
+    ctx.fillStyle =
+        gradiente;
+
+    ctx.fill(
+        caminhoArea
+    );
+
+
+    /* ============================================================
+       LINHA
+    ============================================================ */
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        pontos[0].x,
+        pontos[0].y
+    );
+
+
+    for (
+        let i = 1;
+        i < pontos.length;
+        i++
+    ) {
+
+        const anterior =
+            pontos[i - 1];
+
+        const atual =
+            pontos[i];
+
+
+        const meioX =
+            (anterior.x + atual.x) / 2;
+
+        const meioY =
+            (anterior.y + atual.y) / 2;
+
+
+        ctx.quadraticCurveTo(
+            anterior.x,
+            anterior.y,
+            meioX,
+            meioY
+        );
+    }
+
+
+    ctx.lineTo(
+        ultimo.x,
+        ultimo.y
+    );
+
+
+    ctx.strokeStyle =
+        "#4A90D9";
+
+    ctx.lineWidth = 3.5;
+
+    ctx.lineCap = "round";
+
+    ctx.lineJoin = "round";
+
+
+    ctx.shadowColor =
+        "rgba(74,144,217,0.28)";
+
+    ctx.shadowBlur = 10;
+
 
     ctx.stroke();
 
 
-    /* ============================================================
-       TÍTULO DO EIXO X
-       ============================================================ */
-
-    ctx.fillStyle =
-        "#4b5563";
-
-    ctx.font =
-        "12px Arial";
-
-    ctx.textAlign =
-        "center";
-
-    ctx.fillText(
-        "Tempo decorrido",
-        margemEsquerda +
-        graficoLargura / 2,
-        altura - 10
-    );
-
-
-    /* ============================================================
-       CURVA
-       ============================================================ */
-
-    if (pontos.length > 0) {
-
-        ctx.beginPath();
-
-        const primeiro =
-            pontos[0];
-
-        ctx.moveTo(
-            converterX(primeiro.tempo),
-            converterY(primeiro.temperatura)
-        );
-
-
-        for (
-            let i = 1;
-            i < pontos.length;
-            i++
-        ) {
-
-            const ponto =
-                pontos[i];
-
-            const anterior =
-                pontos[i - 1];
-
-
-            const x1 =
-                converterX(anterior.tempo);
-
-            const y1 =
-                converterY(anterior.temperatura);
-
-            const x2 =
-                converterX(ponto.tempo);
-
-            const y2 =
-                converterY(ponto.temperatura);
-
-
-            const meioX =
-                (x1 + x2) / 2;
-
-            const meioY =
-                (y1 + y2) / 2;
-
-
-            ctx.quadraticCurveTo(
-                x1,
-                y1,
-                meioX,
-                meioY
-            );
-        }
-
-
-        /*
-         * Último trecho animado.
-         */
-
-        if (
-            temperaturaVisual !== null
-        ) {
-
-            const ultimo =
-                pontos[pontos.length - 1];
-
-            const x1 =
-                converterX(ultimo.tempo);
-
-            const y1 =
-                converterY(ultimo.temperatura);
-
-            const x2 =
-                converterX(ultimoTempo);
-
-            const y2 =
-                converterY(temperaturaVisual);
-
-
-            ctx.quadraticCurveTo(
-                x1,
-                y1,
-                x2,
-                y2
-            );
-        }
-
-
-        ctx.lineWidth = 3;
-
-        ctx.lineJoin = "round";
-
-        ctx.lineCap = "round";
-
-        ctx.strokeStyle =
-            "#4A90D9";
-
-        ctx.stroke();
-
-
-        /* ========================================================
-           ÁREA SOB A CURVA
-           ======================================================== */
-
-        const ultimo =
-            pontos[pontos.length - 1];
-
-        const xFinal =
-            converterX(
-                temperaturaVisual !== null
-                    ? ultimoTempo
-                    : ultimo.tempo
-            );
-
-        ctx.lineTo(
-            xFinal,
-            altura - margemInferior
-        );
-
-        ctx.lineTo(
-            converterX(
-                pontos[0].tempo
-            ),
-            altura - margemInferior
-        );
-
-        ctx.closePath();
-
-        ctx.fillStyle =
-            "rgba(74, 144, 217, 0.08)";
-
-        ctx.fill();
-    }
+    ctx.shadowBlur = 0;
 
 
     /* ============================================================
        PONTO ATUAL
-       ============================================================ */
+    ============================================================ */
 
-    if (
-        temperaturaVisual !== null
-    ) {
+    if (temperaturaAtual !== null) {
 
         const x =
-            converterX(ultimoTempo);
+            converterX(
+                ultimoTempo
+            );
 
         const y =
-            converterY(temperaturaVisual);
+            converterY(
+                temperaturaAtual
+            );
 
 
-        ctx.beginPath();
-
-        ctx.arc(
-            x,
-            y,
-            5,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fillStyle =
-            "#4A90D9";
-
-        ctx.fill();
-
+        /*
+         * brilho
+         */
 
         ctx.beginPath();
 
@@ -1357,19 +1943,91 @@ function desenharGrafico() {
             Math.PI * 2
         );
 
-        ctx.strokeStyle =
-            "rgba(74, 144, 217, 0.22)";
 
-        ctx.lineWidth = 2;
+        ctx.fillStyle =
+            "rgba(74,144,217,0.15)";
+
+        ctx.fill();
+
+
+        /*
+         * ponto
+         */
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            y,
+            5,
+            0,
+            Math.PI * 2
+        );
+
+
+        ctx.fillStyle =
+            "#ffffff";
+
+        ctx.fill();
+
+
+        ctx.strokeStyle =
+            "#4A90D9";
+
+        ctx.lineWidth = 3;
 
         ctx.stroke();
     }
+
+
+    /* ============================================================
+       TÍTULOS DOS EIXOS
+    ============================================================ */
+
+    ctx.fillStyle =
+        "#475569";
+
+    ctx.font =
+        "600 12px Arial";
+
+    ctx.textAlign =
+        "center";
+
+    ctx.textBaseline =
+        "bottom";
+
+
+    ctx.fillText(
+        "Tempo decorrido",
+        margemEsquerda +
+        graficoLargura / 2,
+        altura - 3
+    );
+
+
+    ctx.save();
+
+    ctx.translate(
+        14,
+        margemSuperior +
+        graficoAltura / 2
+    );
+
+    ctx.rotate(-Math.PI / 2);
+
+    ctx.fillText(
+        "Temperatura",
+        0,
+        0
+    );
+
+    ctx.restore();
 }
 
 
 /* ================================================================
    RECEBER TEMPERATURA
-   ================================================================ */
+================================================================ */
 
 function receberTemperatura(dados) {
 
@@ -1377,17 +2035,23 @@ function receberTemperatura(dados) {
         dados.temperatura === undefined ||
         dados.temperatura === null
     ) {
+
         return;
     }
 
 
     const temperatura =
-        Number(dados.temperatura);
+        Number(
+            dados.temperatura
+        );
 
 
     if (
-        !Number.isFinite(temperatura)
+        !Number.isFinite(
+            temperatura
+        )
     ) {
+
         return;
     }
 
@@ -1396,35 +2060,55 @@ function receberTemperatura(dados) {
         dados.tempo === undefined ||
         dados.tempo === null
     ) {
+
         return;
     }
 
 
-    const tempoESP =
+    let tempo =
         Number(dados.tempo) / 1000;
 
 
     if (
-        !Number.isFinite(tempoESP)
+        !Number.isFinite(tempo)
     ) {
+
         return;
     }
 
 
-    /*
-     * Primeiro tempo recebido vira zero.
-     */
+    /* ============================================================
+       PRIMEIRA LEITURA
+    ============================================================ */
 
-    if (tempoInicial === null) {
+    if (
+        tempoInicial === null
+    ) {
 
         tempoInicial =
-            tempoESP;
+            tempo;
     }
 
 
-    const tempo =
-        tempoESP -
+    tempo -=
         tempoInicial;
+
+
+    /* ============================================================
+       ATUALIZAR TEMPERATURA
+    ============================================================ */
+
+    temperaturaAlvo =
+        temperatura;
+
+
+    if (
+        temperaturaAtual === null
+    ) {
+
+        temperaturaAtual =
+            temperatura;
+    }
 
 
     ultimoTempo =
@@ -1434,71 +2118,78 @@ function receberTemperatura(dados) {
         );
 
 
-    temperaturaAlvo =
-        temperatura;
+    /* ============================================================
+       INTERFACE
+    ============================================================ */
+
+    temperatura1Elemento.innerHTML =
+        temperatura.toFixed(2) +
+        ' <span>°C</span>';
 
 
-    if (
-        temperaturaVisual === null
-    ) {
-
-        temperaturaVisual =
-            temperatura;
-    }
+    tempoAtualElemento.innerHTML =
+        ultimoTempo.toFixed(1) +
+        ' <span class="valor-unidade">segundos</span>';
 
 
-    /*
-     * Atualização da interface.
-     */
-
-    temperatura1Elemento.textContent =
-        temperatura.toFixed(2);
-
-    tempoAtualElemento.textContent =
-        ultimoTempo.toFixed(1) + " s";
-
-    quantidadeLeiturasElemento.textContent =
-        dadosCapsula1.length;
-
-
-    /*
-     * Só armazena se o teste estiver executando.
-     */
+    /* ============================================================
+       SALVAR
+    ============================================================ */
 
     if (executando) {
 
         dadosCapsula1.push({
 
-            tempo: ultimoTempo,
+            tempo:
+                tempo,
 
-            temperatura: temperatura
-
+            temperatura:
+                temperatura
         });
+
+
+        /*
+         * Atualiza contador.
+         */
 
         quantidadeLeiturasElemento.textContent =
             dadosCapsula1.length;
     }
-
-
-    statusDetalhe.textContent =
-        "Dados recebidos do ESP32";
 }
 
 
 /* ================================================================
    ANIMAÇÃO
-   ================================================================ */
+================================================================ */
 
-function animar() {
-
-    temperaturaVisual =
-        aproximar(
-            temperaturaVisual,
-            temperaturaAlvo
-        );
+let ultimoFrame = 0;
 
 
-    desenharGrafico();
+function animar(timestamp) {
+
+    /*
+     * Limita a renderização para aproximadamente 30 FPS.
+     *
+     * O ESP32 continua podendo enviar dados a 10 Hz.
+     */
+
+    if (
+        timestamp - ultimoFrame >= 33
+    ) {
+
+        ultimoFrame =
+            timestamp;
+
+
+        temperaturaAtual =
+            aproximar(
+                temperaturaAtual,
+                temperaturaAlvo
+            );
+
+
+        desenharGrafico();
+    }
 
 
     requestAnimationFrame(
@@ -1509,7 +2200,7 @@ function animar() {
 
 /* ================================================================
    WEBSOCKET
-   ================================================================ */
+================================================================ */
 
 const protocolo =
     location.protocol === "https:"
@@ -1538,16 +2229,15 @@ function conectarWebSocket() {
             statusTexto.textContent =
                 "Conectado ao ESP32 / Cloudflare";
 
-            indicadorStatus.classList.remove(
-                "erro"
+
+            statusIndicador.classList.add(
+                "online"
             );
 
-            indicadorStatus.classList.add(
-                "conectado"
-            );
 
-            statusDetalhe.textContent =
-                "Canal de dados ativo";
+            statusLive.classList.add(
+                "visivel"
+            );
         };
 
 
@@ -1561,11 +2251,14 @@ function conectarWebSocket() {
                         event.data
                     );
 
+
                 receberTemperatura(
                     dados
                 );
 
-            } catch (erro) {
+            }
+
+            catch (erro) {
 
                 console.error(
                     "Erro ao interpretar dados:",
@@ -1579,18 +2272,17 @@ function conectarWebSocket() {
         function () {
 
             statusTexto.textContent =
-                "Erro na conexão";
+                "Erro na comunicação com o servidor";
 
-            indicadorStatus.classList.remove(
-                "conectado"
+
+            statusIndicador.classList.remove(
+                "online"
             );
 
-            indicadorStatus.classList.add(
-                "erro"
-            );
 
-            statusDetalhe.textContent =
-                "Verifique o ESP32 e o servidor";
+            statusLive.classList.remove(
+                "visivel"
+            );
         };
 
 
@@ -1598,14 +2290,17 @@ function conectarWebSocket() {
         function () {
 
             statusTexto.textContent =
-                "Conexão encerrada";
+                "Conexão encerrada. Tentando reconectar...";
 
-            indicadorStatus.classList.remove(
-                "conectado"
+
+            statusIndicador.classList.remove(
+                "online"
             );
 
-            statusDetalhe.textContent =
-                "Tentando reconectar...";
+
+            statusLive.classList.remove(
+                "visivel"
+            );
 
 
             setTimeout(
@@ -1617,8 +2312,8 @@ function conectarWebSocket() {
 
 
 /* ================================================================
-   INICIAR TESTE
-   ================================================================ */
+   INICIAR EXPERIMENTO
+================================================================ */
 
 botaoIniciar.addEventListener(
     "click",
@@ -1628,18 +2323,20 @@ botaoIniciar.addEventListener(
 
         tempoInicial = null;
 
-        ultimoTempo = 0;
+        temperaturaAtual = null;
 
         temperaturaAlvo = null;
 
-        temperaturaVisual = null;
+        ultimoTempo = 0;
 
 
-        temperatura1Elemento.textContent =
-            "--";
+        temperatura1Elemento.innerHTML =
+            '-- <span>°C</span>';
 
-        tempoAtualElemento.textContent =
-            "0 s";
+
+        tempoAtualElemento.innerHTML =
+            '0.0 <span class="valor-unidade">segundos</span>';
+
 
         quantidadeLeiturasElemento.textContent =
             "0";
@@ -1651,27 +2348,19 @@ botaoIniciar.addEventListener(
         botaoIniciar.disabled =
             true;
 
+
         botaoParar.disabled =
             false;
 
-        botaoParar.classList.add(
-            "ativo"
-        );
-
-
-        estadoTeste.textContent =
-            "Teste em andamento";
-
 
         desenharGrafico();
-
     }
 );
 
 
 /* ================================================================
-   PARAR TESTE
-   ================================================================ */
+   PARAR EXPERIMENTO
+================================================================ */
 
 botaoParar.addEventListener(
     "click",
@@ -1683,38 +2372,30 @@ botaoParar.addEventListener(
         botaoIniciar.disabled =
             false;
 
+
         botaoParar.disabled =
             true;
 
-        botaoParar.classList.remove(
-            "ativo"
-        );
 
-
-        estadoTeste.textContent =
-            "Teste finalizado";
-
-
-        console.log(
-            "Dados do experimento:",
-            dadosCapsula1
-        );
+        desenharGrafico();
     }
 );
 
 
 /* ================================================================
    INICIALIZAÇÃO
-   ================================================================ */
+================================================================ */
 
 ajustarCanvas();
 
 conectarWebSocket();
 
-animar();
+requestAnimationFrame(
+    animar
+);
 
 </script>
 
-</body>
 
+</body>
 </html>
