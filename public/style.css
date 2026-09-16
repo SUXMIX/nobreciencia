@@ -2,97 +2,709 @@
     box-sizing: border-box;
 }
 
+:root {
+    --azul: #0A2E5C;
+    --azul-claro: #4A90D9;
+    --verde: #2EC4B6;
+    --amarelo: #F9A825;
+
+    --fundo: #f4f6f8;
+    --branco: #ffffff;
+    --texto: #17202a;
+    --texto-secundario: #667085;
+    --borda: #e2e7ec;
+}
+
+
+html {
+    scroll-behavior: smooth;
+}
+
+
 body {
     margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f4f6f8;
-    color: #111827;
+
+    font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+
+    background: var(--fundo);
+    color: var(--texto);
 }
+
+
+/* =========================
+   CABEÇALHO
+   ========================= */
 
 header {
-    background: #0A2E5C;
+    background: var(--azul);
     color: white;
-    text-align: center;
-    padding: 35px 20px;
+
+    padding: 28px 20px;
 }
 
-header h1 {
-    margin: 0 0 10px;
+
+.cabecalho-conteudo {
+    max-width: 1100px;
+    margin: auto;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 30px;
 }
 
-header p {
+
+.marca {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    min-width: 220px;
+}
+
+
+.marca-simbolo {
+    width: 48px;
+    height: 48px;
+
+    border-radius: 12px;
+
+    background: var(--verde);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 13px;
+    font-weight: bold;
+}
+
+
+.marca strong {
+    display: block;
+    font-size: 14px;
+}
+
+
+.marca span {
+    display: block;
+
+    margin-top: 4px;
+
+    font-size: 12px;
+
+    opacity: .75;
+}
+
+
+.cabecalho-titulo {
+    text-align: right;
+}
+
+
+.cabecalho-titulo h1 {
     margin: 0;
+
+    font-size: 25px;
 }
+
+
+.cabecalho-titulo p {
+    margin: 7px 0 0;
+
+    font-size: 14px;
+
+    opacity: .8;
+}
+
+
+/* =========================
+   CONTEÚDO
+   ========================= */
 
 main {
-    max-width: 1100px;
-    margin: 40px auto;
-    padding: 0 20px;
+    width: min(1100px, calc(100% - 40px));
+
+    margin: 35px auto 50px;
 }
 
-.grafico-container {
-    background: white;
-    padding: 30px;
+
+/* =========================
+   STATUS
+   ========================= */
+
+.status-card {
+    background: var(--branco);
+
+    border: 1px solid var(--borda);
+
     border-radius: 14px;
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+
+    padding: 18px 20px;
+
+    margin-bottom: 20px;
 }
 
-.grafico-container h2 {
-    margin-top: 0;
+
+.status-esquerda {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
 }
+
+
+.status-indicador {
+    width: 12px;
+    height: 12px;
+
+    border-radius: 50%;
+
+    background: #9aa4af;
+}
+
+
+.status-indicador.online {
+    background: var(--verde);
+
+    box-shadow:
+        0 0 0 5px rgba(46, 196, 182, .15);
+}
+
+
+#statusTexto {
+    display: block;
+
+    font-size: 14px;
+}
+
+
+#statusLive {
+    display: none;
+
+    margin-top: 3px;
+
+    color: var(--texto-secundario);
+
+    font-size: 12px;
+}
+
+
+#statusLive.visivel {
+    display: block;
+}
+
+
+/* =========================
+   INDICADORES
+   ========================= */
 
 .temperaturas {
-    display: flex;
-    gap: 20px;
-    margin: 25px 0;
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 18px;
+
+    margin-bottom: 20px;
 }
 
-.temperaturas div {
-    flex: 1;
-    background: #f4f6f8;
-    padding: 18px;
-    border-radius: 10px;
+
+.indicador-card {
+    background: var(--branco);
+
+    border: 1px solid var(--borda);
+
+    border-radius: 14px;
+
+    padding: 22px;
 }
 
-.temperaturas span {
+
+.indicador-card span {
     display: block;
-    margin-bottom: 8px;
+
+    color: var(--texto-secundario);
+
+    font-size: 13px;
+
+    margin-bottom: 9px;
 }
 
-.temperaturas strong {
-    font-size: 28px;
+
+.indicador-card strong {
+    display: block;
+
+    color: var(--azul);
+
+    font-size: 30px;
+
+    line-height: 1.1;
 }
 
-.grafico {
-    position: relative;
-    height: 500px;
-}
 
-.controles {
-    margin-top: 25px;
-    display: flex;
-    gap: 10px;
-}
-
-button {
-    border: none;
-    padding: 12px 22px;
-    border-radius: 8px;
-    cursor: pointer;
+.indicador-card small {
     font-size: 16px;
 }
 
+
+/* =========================
+   GRÁFICO
+   ========================= */
+
+.grafico-container {
+    background: var(--branco);
+
+    border: 1px solid var(--borda);
+
+    border-radius: 16px;
+
+    padding: 28px;
+
+    box-shadow:
+        0 5px 20px rgba(0, 0, 0, .05);
+}
+
+
+.grafico-cabecalho {
+    display: flex;
+
+    justify-content: space-between;
+    align-items: flex-start;
+
+    gap: 20px;
+
+    margin-bottom: 22px;
+}
+
+
+.eyebrow {
+    display: block;
+
+    color: var(--verde);
+
+    font-size: 11px;
+    font-weight: bold;
+
+    letter-spacing: 1.5px;
+
+    margin-bottom: 5px;
+}
+
+
+.grafico-cabecalho h2 {
+    margin: 0;
+
+    color: var(--azul);
+
+    font-size: 23px;
+}
+
+
+.grafico-cabecalho p {
+    margin: 7px 0 0;
+
+    color: var(--texto-secundario);
+
+    font-size: 13px;
+}
+
+
+.estado-experimento {
+    padding: 8px 12px;
+
+    border-radius: 20px;
+
+    background: #eef2f5;
+
+    color: #59636e;
+
+    font-size: 12px;
+    font-weight: bold;
+
+    white-space: nowrap;
+}
+
+
+.estado-experimento.ativo {
+    background: rgba(46, 196, 182, .12);
+
+    color: #148f83;
+}
+
+
+.estado-experimento.finalizado {
+    background: rgba(249, 168, 37, .14);
+
+    color: #9a6500;
+}
+
+
+/* Área do gráfico */
+
+.grafico {
+    position: relative;
+
+    width: 100%;
+
+    height: 500px;
+
+    touch-action: none;
+
+    user-select: none;
+}
+
+
+#graph {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    cursor: crosshair;
+}
+
+
+/* =========================
+   TOOLTIP
+   ========================= */
+
+.grafico-tooltip {
+    position: absolute;
+
+    display: none;
+
+    pointer-events: none;
+
+    z-index: 10;
+
+    min-width: 120px;
+
+    padding: 9px 11px;
+
+    border-radius: 8px;
+
+    background: rgba(10, 46, 92, .96);
+
+    color: white;
+
+    box-shadow:
+        0 5px 18px rgba(0, 0, 0, .18);
+
+    transform:
+        translate(12px, -50%);
+}
+
+
+.grafico-tooltip.visivel {
+    display: block;
+}
+
+
+.grafico-tooltip strong {
+    display: block;
+
+    font-size: 13px;
+}
+
+
+.grafico-tooltip span {
+    display: block;
+
+    margin-top: 3px;
+
+    font-size: 12px;
+
+    opacity: .9;
+}
+
+
+/* =========================
+   CONTROLES
+   ========================= */
+
+.controles {
+    display: flex;
+
+    flex-wrap: wrap;
+
+    gap: 22px;
+
+    margin-top: 25px;
+
+    padding-top: 23px;
+
+    border-top: 1px solid var(--borda);
+}
+
+
+.grupo-controle {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 8px;
+}
+
+
+.controle-titulo {
+    color: var(--texto-secundario);
+
+    font-size: 12px;
+    font-weight: bold;
+}
+
+
+.botoes {
+    display: flex;
+
+    gap: 8px;
+}
+
+
+button {
+    border: none;
+
+    padding: 11px 17px;
+
+    border-radius: 8px;
+
+    font-size: 14px;
+    font-weight: bold;
+
+    cursor: pointer;
+
+    transition:
+        transform .15s ease,
+        opacity .15s ease,
+        filter .15s ease;
+}
+
+
+button:hover:not(:disabled) {
+    filter: brightness(.95);
+
+    transform: translateY(-1px);
+}
+
+
+button:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+
+button:disabled {
+    cursor: not-allowed;
+
+    opacity: .4;
+}
+
+
 #iniciar {
-    background: #2EC4B6;
+    background: var(--verde);
+
     color: white;
 }
+
 
 #parar {
-    background: #0A2E5C;
+    background: var(--azul);
+
     color: white;
 }
 
-#status {
-    margin-top: 15px;
-    color: #555;
+
+#iniciar2 {
+    background: var(--azul-claro);
+
+    color: white;
+}
+
+
+#parar2 {
+    background: var(--azul);
+
+    color: white;
+}
+
+
+#reprise {
+    background: var(--amarelo);
+
+    color: #382600;
+}
+
+
+#novaSessao {
+    background: #e8edf1;
+
+    color: #394550;
+}
+
+
+/* =========================
+   INFORMAÇÕES
+   ========================= */
+
+.informacoes {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 18px;
+
+    margin-top: 20px;
+}
+
+
+.informacoes article {
+    background: white;
+
+    border: 1px solid var(--borda);
+
+    border-radius: 14px;
+
+    padding: 22px;
+}
+
+
+.informacoes h3 {
+    margin: 0 0 8px;
+
+    color: var(--azul);
+
+    font-size: 16px;
+}
+
+
+.informacoes p {
+    margin: 0;
+
+    color: var(--texto-secundario);
+
+    font-size: 13px;
+
+    line-height: 1.6;
+}
+
+
+/* =========================
+   RODAPÉ
+   ========================= */
+
+footer {
+    padding: 25px 20px;
+
+    text-align: center;
+
+    color: #7b858f;
+
+    font-size: 12px;
+}
+
+
+/* =========================
+   RESPONSIVIDADE
+   ========================= */
+
+@media (max-width: 800px) {
+
+    .cabecalho-conteudo {
+        flex-direction: column;
+
+        align-items: flex-start;
+    }
+
+
+    .cabecalho-titulo {
+        text-align: left;
+    }
+
+
+    .temperaturas {
+        grid-template-columns: 1fr;
+    }
+
+
+    .informacoes {
+        grid-template-columns: 1fr;
+    }
+
+
+    .grafico {
+        height: 430px;
+    }
+
+}
+
+
+@media (max-width: 550px) {
+
+    main {
+        width: min(100% - 24px, 1100px);
+
+        margin-top: 20px;
+    }
+
+
+    header {
+        padding: 22px 16px;
+    }
+
+
+    .cabecalho-titulo h1 {
+        font-size: 21px;
+    }
+
+
+    .grafico-container {
+        padding: 18px;
+    }
+
+
+    .grafico-cabecalho {
+        flex-direction: column;
+    }
+
+
+    .estado-experimento {
+        align-self: flex-start;
+    }
+
+
+    .grafico {
+        height: 350px;
+    }
+
+
+    .controles {
+        flex-direction: column;
+
+        gap: 16px;
+    }
+
+
+    .grupo-controle {
+        width: 100%;
+    }
+
+
+    .botoes {
+        flex-wrap: wrap;
+    }
+
+
+    button {
+        flex: 1;
+
+        min-width: 105px;
+    }
+
 }
