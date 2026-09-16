@@ -1,107 +1,74 @@
 
+// ============================================================
+// EFEITO ESTUFA — MONITORAMENTO
+// app.js
+// ============================================================
+
+// ------------------------------------------------------------
+// CONFIGURAÇÃO
+// ------------------------------------------------------------
+
+// IMPORTANTE:
+// A página pode estar hospedada no GitHub Pages.
+// Por isso, NÃO usamos location.host aqui.
+// O WebSocket precisa apontar diretamente para o Worker.
+const enderecoWebSocket =
+    "wss://nobreciencia.lilolilo09666.workers.dev/api/ws";
 
 
-/* ============================================================
-   ELEMENTOS
-   ============================================================ */
+// ------------------------------------------------------------
+// ELEMENTOS DA PÁGINA
+// ------------------------------------------------------------
 
 const canvas = document.getElementById("graph");
-const graficoArea = document.getElementById("graficoArea");
-
 const ctx = canvas.getContext("2d");
 
-const temperaturaElemento =
-    document.getElementById("temperatura1");
+const statusIndicador = document.getElementById("statusIndicador");
+const statusTexto = document.getElementById("statusTexto");
+const statusLive = document.getElementById("statusLive");
 
-const tempoAtualElemento =
-    document.getElementById("tempoAtual");
-
+const temperaturaElemento = document.getElementById("temperatura1");
+const tempoElemento = document.getElementById("tempoAtual");
 const quantidadeLeiturasElemento =
     document.getElementById("quantidadeLeituras");
 
-const statusIndicador =
-    document.getElementById("statusIndicador");
-
-const statusTexto =
-    document.getElementById("statusTexto");
-
-const statusLive =
-    document.getElementById("statusLive");
-
-const descricaoControle =
-    document.getElementById("descricaoControle");
-
-const estadoExperimento =
+const estadoExperimentoElemento =
     document.getElementById("estadoExperimento");
 
-const botaoIniciar =
-    document.getElementById("iniciar");
+const descricaoControleElemento =
+    document.getElementById("descricaoControle");
 
-const botaoParar =
-    document.getElementById("parar");
+const graficoArea = document.getElementById("graficoArea");
 
-const botaoIniciar2 =
-    document.getElementById("iniciar2");
+const iniciarBotao = document.getElementById("iniciar");
+const pararBotao = document.getElementById("parar");
 
-const botaoParar2 =
-    document.getElementById("parar2");
+const iniciar2Botao = document.getElementById("iniciar2");
+const parar2Botao = document.getElementById("parar2");
 
-const botaoReprise =
-    document.getElementById("reprise");
-
-const botaoNovaSessao =
-    document.getElementById("novaSessao");
-
-const tooltip =
-    document.getElementById("graficoTooltip");
-
-const tooltipTempo =
-    document.getElementById("tooltipTempo");
-
-const tooltipTemperatura =
-    document.getElementById("tooltipTemperatura");
+const repriseBotao = document.getElementById("reprise");
+const novaSessaoBotao = document.getElementById("novaSessao");
 
 
-/* ============================================================
-   ESTADO DO EXPERIMENTO
-   ============================================================ */
+// ------------------------------------------------------------
+// ESTADO
+// ------------------------------------------------------------
+
+let ws = null;
+let reconexaoTimer = null;
 
 let etapa = "aguardando1";
 
-/*
- * Estados possíveis:
- *
- * aguardando1
- * capsula1
- * aguardando2
- * capsula2
- * finalizada
- */
-
-
-/*
- * Dados das duas cápsulas.
- *
- * IMPORTANTE:
- *
- * O tempo armazenado aqui é o tempo LOCAL da cápsula.
- *
- * Portanto:
- *
- * cápsula 1 → começa em 0
- * cápsula 2 → começa novamente em 0
- *
- * O tempo global do ESP32 não é usado para criar
- * o eixo do gráfico.
- */
+// Possíveis etapas:
+//
+// aguardando1
+// capsula1
+// aguardando2
+// capsula2
+// finalizada
 
 let dadosCapsula1 = [];
 let dadosCapsula2 = [];
-
-
-/* ============================================================
-   TEMPOS
-   ============================================================ */
 
 let inicioRealCapsula1 = null;
 let inicioRealCapsula2 = null;
@@ -112,875 +79,738 @@ let duracaoCapsula2 = null;
 let tempoParadoCapsula1 = null;
 let tempoParadoCapsula2 = null;
 
-
-/*
- * Timer usado para garantir que a cápsula 2
- * pare exatamente na duração da cápsula 1.
- */
+let temperaturaAtual = null;
+let totalLeituras = 0;
 
 let temporizadorCapsula2 = null;
 
 
-/* ============================================================
-   TEMPERATURA
-   ============================================================ */
+// ------------------------------------------------------------
+// ESTADO DA REPRISE
+// ------------------------------------------------------------
 
-let temperaturaAtual = null;
+let emReprise = false;
 
+let repriseInicio = null;
+let repriseAnimacao = null;
 
-/*
- * Temperatura mais recente recebida do ESP32.
- */
+let repriseDuracaoTotal = 0;
 
-let ultimoDadoRecebido = null;
 
+// ------------------------------------------------------------
+// CANVAS
+// ------------------------------------------------------------
 
-/*
- * Contador total de leituras.
- */
+function ajustarCanvas() {
+    const largura = graficoArea.clientWidth;
+    const altura = graficoArea.clientHeight;
 
-let totalLeituras = 0;
+    const dpr = window.devicePixelRatio || 1;
 
+    canvas.width = largura * dpr;
+    canvas.height = altura * dpr;
 
-/* ============================================================
-   REPRISE
-   ============================================================ */
+    canvas.style.width = largura + "px";
+    canvas.style.height = altura + "px";
 
-let mostrandoReprise = false;
-
-let repriseEmExecucao = false;
-
-let inicioReprise = null;
-
-let tempoReprise = 0;
-
-
-/* ============================================================
-   WEBSOCKET
-   ============================================================ */
-
-let ws = null;
-
-
-/*
- * Mantém a URL exatamente no padrão utilizado
- * pelo Cloudflare Worker.
- */
-
-const protocolo =
-    location.protocol === "https:"
-        ? "wss:"
-        : "ws:";
-
-const enderecoWebSocket =
-    `${protocolo}//${location.host}/api/ws`;
-
-
-/* ============================================================
-   CONFIGURAÇÕES DO GRÁFICO
-   ============================================================ */
-
-const MAX_PONTOS_GRAFICO = 600;
-
-
-/*
- * Margens do gráfico.
- */
-
-const MARGEM = {
-    esquerda: 62,
-    direita: 22,
-    superior: 25,
-    inferior: 50
-};
-
-
-/* ============================================================
-   UTILIDADES
-   ============================================================ */
-
-function limitar(valor, minimo, maximo) {
-
-    return Math.max(
-        minimo,
-        Math.min(maximo, valor)
-    );
-}
-
-
-function arredondarInteiro(valor) {
-
-    return Math.round(valor);
-}
-
-
-function formatarTemperatura(valor) {
-
-    if (!Number.isFinite(valor)) {
-        return "--";
-    }
-
-    /*
-     * A temperatura atual continua com uma casa decimal,
-     * pois isso preserva melhor a leitura científica.
-     */
-
-    return valor.toFixed(1);
-}
-
-
-/*
- * Converte um valor para número de forma segura.
- */
-
-function numeroSeguro(valor) {
-
-    const numero = Number(valor);
-
-    return Number.isFinite(numero)
-        ? numero
-        : null;
-}
-
-
-/* ============================================================
-   TEMPO LOCAL DA CÁPSULA
-   ============================================================ */
-
-function obterTempoCapsula1() {
-
-    if (inicioRealCapsula1 === null) {
-
-        return 0;
-    }
-
-
-    if (tempoParadoCapsula1 !== null) {
-
-        return tempoParadoCapsula1;
-    }
-
-
-    return (
-        performance.now() -
-        inicioRealCapsula1
-    ) / 1000;
-}
-
-
-function obterTempoCapsula2() {
-
-    if (inicioRealCapsula2 === null) {
-
-        return 0;
-    }
-
-
-    if (tempoParadoCapsula2 !== null) {
-
-        return tempoParadoCapsula2;
-    }
-
-
-    return (
-        performance.now() -
-        inicioRealCapsula2
-    ) / 1000;
-}
-
-
-/* ============================================================
-   TEMPO VISUAL
-   ============================================================ */
-
-function atualizarTempoVisual() {
-
-    let tempo = 0;
-
-
-    if (etapa === "capsula1") {
-
-        tempo = obterTempoCapsula1();
-
-    } else if (etapa === "capsula2") {
-
-        tempo = obterTempoCapsula2();
-
-    } else if (
-        etapa === "aguardando2" &&
-        duracaoCapsula1 !== null
-    ) {
-
-        /*
-         * Cápsula 1 congelada.
-         */
-
-        tempo = duracaoCapsula1;
-
-    } else if (
-        etapa === "finalizada" &&
-        duracaoCapsula2 !== null
-    ) {
-
-        tempo = duracaoCapsula2;
-    }
-
-
-    if (mostrandoReprise) {
-
-        tempo = tempoReprise;
-    }
-
-
-    tempo = Math.max(0, tempo);
-
-
-    tempoAtualElemento.innerHTML =
-        `${tempo.toFixed(1)} <small>s</small>`;
-}
-
-
-/* ============================================================
-   TEMPERATURA ATUAL
-   ============================================================ */
-
-function atualizarTemperaturaVisual() {
-
-    if (temperaturaAtual === null) {
-
-        temperaturaElemento.innerHTML =
-            `-- <small>°C</small>`;
-
-        return;
-    }
-
-
-    temperaturaElemento.innerHTML =
-        `${formatarTemperatura(temperaturaAtual)}
-         <small>°C</small>`;
-}
-
-
-/* ============================================================
-   RECEBER TEMPERATURA
-   ============================================================ */
-
-function receberTemperatura(dados) {
-
-    if (!dados || typeof dados !== "object") {
-
-        return;
-    }
-
-
-    /*
-     * O ESP32 deve enviar:
-     *
-     * {
-     *   temperatura: ...
-     *   tempo: ...
-     * }
-     *
-     * O campo tempo é mantido para compatibilidade,
-     * mas o gráfico utiliza o relógio local da etapa.
-     */
-
-    const temperatura =
-        numeroSeguro(dados.temperatura);
-
-
-    if (temperatura === null) {
-
-        return;
-    }
-
-
-    temperaturaAtual = temperatura;
-
-    ultimoDadoRecebido = dados;
-
-    totalLeituras++;
-
-
-    atualizarTemperaturaVisual();
-
-
-    quantidadeLeiturasElemento.textContent =
-        totalLeituras;
-
-
-    /*
-     * --------------------------------------------------------
-     * CÁPSULA 1
-     * --------------------------------------------------------
-     */
-
-    if (etapa === "capsula1") {
-
-        let tempoLocal =
-            obterTempoCapsula1();
-
-
-        /*
-         * Nunca permitir ponto depois da duração.
-         */
-
-        if (
-            duracaoCapsula1 !== null &&
-            tempoLocal > duracaoCapsula1
-        ) {
-
-            return;
-        }
-
-
-        adicionarPonto(
-            dadosCapsula1,
-            tempoLocal,
-            temperatura
-        );
-
-
-        atualizarTempoVisual();
-
-        desenharGrafico();
-
-        return;
-    }
-
-
-    /*
-     * --------------------------------------------------------
-     * CÁPSULA 2
-     * --------------------------------------------------------
-     */
-
-    if (etapa === "capsula2") {
-
-        let tempoLocal =
-            obterTempoCapsula2();
-
-
-        /*
-         * A cápsula 2 possui exatamente a mesma
-         * duração da cápsula 1.
-         */
-
-        if (
-            duracaoCapsula1 !== null &&
-            tempoLocal > duracaoCapsula1
-        ) {
-
-            return;
-        }
-
-
-        adicionarPonto(
-            dadosCapsula2,
-            tempoLocal,
-            temperatura
-        );
-
-
-        atualizarTempoVisual();
-
-        desenharGrafico();
-
-        return;
-    }
-
-
-    /*
-     * Se nenhuma cápsula está rodando,
-     * apenas atualizamos a temperatura.
-     */
-
-    atualizarTempoVisual();
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     desenharGrafico();
 }
 
 
-/* ============================================================
-   ADICIONAR PONTO
-   ============================================================ */
+// ------------------------------------------------------------
+// FUNÇÕES AUXILIARES
+// ------------------------------------------------------------
 
-function adicionarPonto(lista, tempo, temperatura) {
+function limitar(valor, minimo, maximo) {
+    return Math.max(minimo, Math.min(maximo, valor));
+}
 
-    if (!Number.isFinite(tempo)) {
 
+function formatarTemperatura(valor) {
+    if (valor === null || valor === undefined || !Number.isFinite(valor)) {
+        return "--";
+    }
+
+    return valor.toFixed(2).replace(".", ",") + " °C";
+}
+
+
+function formatarTempo(segundos) {
+    if (!Number.isFinite(segundos) || segundos < 0) {
+        segundos = 0;
+    }
+
+    segundos = Math.floor(segundos);
+
+    const minutos = Math.floor(segundos / 60);
+    const segundosRestantes = segundos % 60;
+
+    return (
+        String(minutos).padStart(2, "0") +
+        ":" +
+        String(segundosRestantes).padStart(2, "0")
+    );
+}
+
+
+function atualizarStatus(texto, conectado = false) {
+    if (statusTexto) {
+        statusTexto.textContent = texto;
+    }
+
+    if (statusIndicador) {
+        statusIndicador.classList.toggle("online", conectado);
+    }
+
+    if (statusLive) {
+        statusLive.textContent = conectado ? "LIVE" : "OFFLINE";
+    }
+}
+
+
+function atualizarInterface() {
+
+    if (temperaturaElemento) {
+        temperaturaElemento.textContent =
+            formatarTemperatura(temperaturaAtual);
+    }
+
+    if (quantidadeLeiturasElemento) {
+        quantidadeLeiturasElemento.textContent =
+            totalLeituras;
+    }
+
+    if (estadoExperimentoElemento) {
+
+        const estados = {
+            aguardando1: "Aguardando cápsula 1",
+            capsula1: "Cápsula 1 em andamento",
+            aguardando2: "Aguardando cápsula 2",
+            capsula2: "Cápsula 2 em andamento",
+            finalizada: "Experimento finalizado"
+        };
+
+        estadoExperimentoElemento.textContent =
+            estados[etapa] || "";
+    }
+
+    if (descricaoControleElemento) {
+
+        const descricoes = {
+            aguardando1:
+                "Inicie a cápsula 1 para começar a coleta.",
+
+            capsula1:
+                "A cápsula 1 está sendo monitorada em tempo real.",
+
+            aguardando2:
+                "A cápsula 1 foi encerrada. Insira a cápsula 2 e inicie a medição.",
+
+            capsula2:
+                "A cápsula 2 está sendo monitorada com a mesma duração da cápsula 1.",
+
+            finalizada:
+                "As duas cápsulas foram medidas. Você pode reproduzir o experimento."
+        };
+
+        descricaoControleElemento.textContent =
+            descricoes[etapa] || "";
+    }
+
+    // Botões
+
+    if (iniciarBotao) {
+        iniciarBotao.disabled = etapa !== "aguardando1";
+    }
+
+    if (pararBotao) {
+        pararBotao.disabled = etapa !== "capsula1";
+    }
+
+    if (iniciar2Botao) {
+        iniciar2Botao.disabled = etapa !== "aguardando2";
+    }
+
+    if (parar2Botao) {
+        parar2Botao.disabled = etapa !== "capsula2";
+    }
+
+    if (repriseBotao) {
+        repriseBotao.disabled =
+            dadosCapsula1.length === 0 ||
+            dadosCapsula2.length === 0;
+    }
+}
+
+
+// ------------------------------------------------------------
+// TEMPO
+// ------------------------------------------------------------
+
+function tempoDaCapsula1() {
+
+    if (inicioRealCapsula1 === null) {
+        return 0;
+    }
+
+    if (tempoParadoCapsula1 !== null) {
+        return tempoParadoCapsula1;
+    }
+
+    return performance.now() - inicioRealCapsula1;
+}
+
+
+function tempoDaCapsula2() {
+
+    if (inicioRealCapsula2 === null) {
+        return 0;
+    }
+
+    if (tempoParadoCapsula2 !== null) {
+        return tempoParadoCapsula2;
+    }
+
+    return performance.now() - inicioRealCapsula2;
+}
+
+
+// ------------------------------------------------------------
+// DADOS RECEBIDOS
+// ------------------------------------------------------------
+
+function processarTemperatura(dado) {
+
+    if (!dado) {
         return;
     }
 
+    let temperatura = null;
+
+    if (typeof dado === "number") {
+        temperatura = dado;
+    }
+
+    if (typeof dado === "object") {
+
+        if (typeof dado.temperatura === "number") {
+            temperatura = dado.temperatura;
+        } else if (typeof dado.temperatura === "string") {
+            temperatura = Number(dado.temperatura);
+        }
+    }
 
     if (!Number.isFinite(temperatura)) {
-
         return;
     }
 
+    temperaturaAtual = temperatura;
+    totalLeituras++;
 
-    /*
-     * Evita pontos com tempo negativo.
-     */
-
-    tempo = Math.max(0, tempo);
+    atualizarInterface();
 
 
-    /*
-     * Se o tempo estiver exatamente além do limite,
-     * não registra.
-     */
+    // --------------------------------------------------------
+    // CÁPSULA 1
+    // --------------------------------------------------------
 
-    if (
-        duracaoCapsula1 !== null &&
-        (
-            etapa === "capsula1" ||
-            etapa === "capsula2"
-        ) &&
-        tempo > duracaoCapsula1
-    ) {
+    if (etapa === "capsula1") {
 
-        return;
-    }
+        const tempo = tempoDaCapsula1();
 
-
-    lista.push({
-        tempo,
-        temperatura
-    });
-
-
-    /*
-     * Limite de segurança.
-     *
-     * Mantém os últimos pontos caso o ESP32 envie
-     * uma quantidade muito grande de leituras.
-     */
-
-    if (lista.length > MAX_PONTOS_GRAFICO) {
-
-        lista.splice(
-            0,
-            lista.length - MAX_PONTOS_GRAFICO
-        );
-    }
-}
-
-
-/* ============================================================
-   ESCALA INTEIRA DO EIXO X
-   ============================================================ */
-
-function obterEscalaX() {
-
-    let duracao = 0;
-
-
-    if (duracaoCapsula1 !== null) {
-
-        duracao = duracaoCapsula1;
-
-    } else if (etapa === "capsula1") {
-
-        duracao = obterTempoCapsula1();
-
-    } else if (etapa === "capsula2") {
-
-        duracao = duracaoCapsula1 || obterTempoCapsula2();
-
-    } else {
-
-        duracao = Math.max(
-            obterMaiorTempo(),
-            1
-        );
-    }
-
-
-    if (mostrandoReprise) {
-
-        duracao =
-            duracaoCapsula1 ||
-            duracao;
-    }
-
-
-    /*
-     * O eixo deve ser proporcional ao experimento.
-     *
-     * Exemplo:
-     *
-     * 3,2 s → eixo até 4 s
-     * 7,1 s → eixo até 8 s
-     * 20,4 s → eixo até 21 s
-     */
-
-    let maximo =
-        Math.ceil(Math.max(duracao, 1));
-
-
-    /*
-     * Na reprise, quando o tempo está correndo,
-     * mostramos progressivamente o gráfico.
-     */
-
-    if (
-        mostrandoReprise &&
-        repriseEmExecucao
-    ) {
-
-        maximo =
-            Math.max(
-                1,
-                Math.ceil(
-                    Math.max(
-                        tempoReprise,
-                        1
-                    )
-                )
-            );
-    }
-
-
-    return {
-        min: 0,
-        max: maximo
-    };
-}
-
-
-/* ============================================================
-   MAIOR TEMPO DOS DADOS
-   ============================================================ */
-
-function obterMaiorTempo() {
-
-    let maior = 0;
-
-
-    for (const ponto of dadosCapsula1) {
-
-        if (ponto.tempo > maior) {
-
-            maior = ponto.tempo;
-        }
-    }
-
-
-    for (const ponto of dadosCapsula2) {
-
-        if (ponto.tempo > maior) {
-
-            maior = ponto.tempo;
-        }
-    }
-
-
-    return maior;
-}
-
-
-/* ============================================================
-   ESCALA Y
-   ============================================================ */
-
-function obterEscalaY(dados) {
-
-    if (dados.length === 0) {
-
-        return {
-            min: 0,
-            max: 10,
-            passo: 2
-        };
-    }
-
-
-    let minimo = Infinity;
-    let maximo = -Infinity;
-
-
-    for (const ponto of dados) {
-
+        // Caso exista limite, não aceitar leituras depois dele.
         if (
-            !Number.isFinite(ponto.temperatura)
+            duracaoCapsula1 !== null &&
+            tempo > duracaoCapsula1
         ) {
-            continue;
+            return;
         }
 
+        dadosCapsula1.push({
+            tempo: tempo,
+            temperatura: temperatura
+        });
 
-        minimo =
-            Math.min(
-                minimo,
-                ponto.temperatura
-            );
-
-        maximo =
-            Math.max(
-                maximo,
-                ponto.temperatura
-            );
+        desenharGrafico();
+        return;
     }
 
 
-    /*
-     * Se não encontramos dados válidos.
-     */
+    // --------------------------------------------------------
+    // CÁPSULA 2
+    // --------------------------------------------------------
+
+    if (etapa === "capsula2") {
+
+        const tempo = tempoDaCapsula2();
+
+        // A cápsula 2 deve usar EXATAMENTE a duração da cápsula 1.
+        if (
+            duracaoCapsula1 !== null &&
+            tempo > duracaoCapsula1
+        ) {
+            return;
+        }
+
+        dadosCapsula2.push({
+            tempo: tempo,
+            temperatura: temperatura
+        });
+
+        desenharGrafico();
+        return;
+    }
+}
+
+
+// ------------------------------------------------------------
+// WEBSOCKET
+// ------------------------------------------------------------
+
+function conectarWebSocket() {
 
     if (
-        !Number.isFinite(minimo) ||
-        !Number.isFinite(maximo)
+        ws &&
+        (
+            ws.readyState === WebSocket.OPEN ||
+            ws.readyState === WebSocket.CONNECTING
+        )
     ) {
+        return;
+    }
 
-        return {
-            min: 0,
-            max: 10,
-            passo: 2
-        };
+    console.log("Conectando ao:", enderecoWebSocket);
+
+    atualizarStatus("Conectando...", false);
+
+    try {
+
+        ws = new WebSocket(enderecoWebSocket);
+
+    } catch (erro) {
+
+        console.error("Erro ao criar WebSocket:", erro);
+
+        atualizarStatus("Erro na conexão", false);
+
+        programarReconexao();
+
+        return;
     }
 
 
-    /*
-     * Eixo com valores inteiros.
-     */
+    ws.onopen = function () {
 
-    minimo = Math.floor(minimo);
-    maximo = Math.ceil(maximo);
+        console.log("WebSocket conectado!");
 
-
-    /*
-     * Se todas as temperaturas forem iguais,
-     * criamos espaço em torno delas.
-     */
-
-    if (minimo === maximo) {
-
-        minimo -= 2;
-        maximo += 2;
-    }
+        atualizarStatus("Conectado ao sistema", true);
+    };
 
 
-    /*
-     * Margem vertical pequena.
-     */
+    ws.onmessage = function (evento) {
 
-    const faixa =
-        maximo - minimo;
+        console.log("Dados recebidos:", evento.data);
 
+        try {
 
-    const margem =
-        Math.max(
-            1,
-            Math.ceil(faixa * 0.12)
-        );
+            const dado = JSON.parse(evento.data);
 
+            processarTemperatura(dado);
 
-    minimo -= margem;
-    maximo += margem;
+        } catch (erro) {
 
-
-    /*
-     * Garantir que o eixo tenha amplitude
-     * suficiente para mostrar os pontos.
-     */
-
-    if (maximo - minimo < 4) {
-
-        const centro =
-            (maximo + minimo) / 2;
-
-        minimo =
-            Math.floor(centro - 2);
-
-        maximo =
-            Math.ceil(centro + 2);
-    }
+            console.error(
+                "Erro ao interpretar dados recebidos:",
+                erro
+            );
+        }
+    };
 
 
-    /*
-     * Determina aproximadamente 5–7 divisões.
-     */
+    ws.onerror = function (erro) {
 
-    const faixaFinal =
-        maximo - minimo;
+        console.error("Erro no WebSocket:", erro);
 
-
-    const passoBruto =
-        faixaFinal / 6;
+        atualizarStatus("Erro na conexão", false);
+    };
 
 
-    const pot =
-        Math.pow(
-            10,
-            Math.floor(
-                Math.log10(
-                    Math.max(passoBruto, 1)
-                )
-            )
-        );
+    ws.onclose = function () {
 
+        console.warn("WebSocket desconectado.");
 
-    const normalizado =
-        passoBruto / pot;
+        atualizarStatus("Desconectado", false);
 
-
-    let passo;
-
-
-    if (normalizado <= 1) {
-
-        passo = 1 * pot;
-
-    } else if (normalizado <= 2) {
-
-        passo = 2 * pot;
-
-    } else if (normalizado <= 5) {
-
-        passo = 5 * pot;
-
-    } else {
-
-        passo = 10 * pot;
-    }
-
-
-    passo = Math.max(
-        1,
-        Math.round(passo)
-    );
-
-
-    minimo =
-        Math.floor(minimo / passo) *
-        passo;
-
-
-    maximo =
-        Math.ceil(maximo / passo) *
-        passo;
-
-
-    return {
-        min: minimo,
-        max: maximo,
-        passo
+        programarReconexao();
     };
 }
 
 
-/* ============================================================
-   CONVERTER PONTO PARA PIXEL
-   ============================================================ */
+function programarReconexao() {
 
-function converterX(tempo, escala, larguraGrafico) {
+    if (reconexaoTimer !== null) {
+        return;
+    }
 
-    const proporcao =
-        (tempo - escala.min) /
-        (escala.max - escala.min);
+    reconexaoTimer = setTimeout(function () {
+
+        reconexaoTimer = null;
+
+        conectarWebSocket();
+
+    }, 2000);
+}
 
 
-    return (
-        MARGEM.esquerda +
-        proporcao * larguraGrafico
+// ------------------------------------------------------------
+// INICIAR CÁPSULA 1
+// ------------------------------------------------------------
+
+function iniciarCapsula1() {
+
+    if (etapa !== "aguardando1") {
+        return;
+    }
+
+    pararReprise();
+
+    dadosCapsula1 = [];
+
+    inicioRealCapsula1 = performance.now();
+
+    tempoParadoCapsula1 = null;
+
+    duracaoCapsula1 = null;
+
+    etapa = "capsula1";
+
+    atualizarInterface();
+
+    desenharGrafico();
+
+    console.log("Cápsula 1 iniciada.");
+}
+
+
+// ------------------------------------------------------------
+// PARAR CÁPSULA 1
+// ------------------------------------------------------------
+
+function pararCapsula1() {
+
+    if (etapa !== "capsula1") {
+        return;
+    }
+
+    tempoParadoCapsula1 =
+        performance.now() - inicioRealCapsula1;
+
+    duracaoCapsula1 = tempoParadoCapsula1;
+
+    // Garante que a duração seja válida.
+    if (
+        !Number.isFinite(duracaoCapsula1) ||
+        duracaoCapsula1 <= 0
+    ) {
+        duracaoCapsula1 = 0;
+    }
+
+    // Remove qualquer leitura que, por atraso,
+    // tenha ultrapassado o limite.
+    dadosCapsula1 = dadosCapsula1.filter(
+        ponto => ponto.tempo <= duracaoCapsula1
+    );
+
+    etapa = "aguardando2";
+
+    atualizarInterface();
+
+    desenharGrafico();
+
+    console.log(
+        "Cápsula 1 parada.",
+        "Duração:",
+        duracaoCapsula1,
+        "ms"
     );
 }
 
 
-function converterY(
-    temperatura,
-    escala,
-    alturaGrafico
-) {
+// ------------------------------------------------------------
+// INICIAR CÁPSULA 2
+// ------------------------------------------------------------
 
-    const proporcao =
-        (temperatura - escala.min) /
-        (escala.max - escala.min);
+function iniciarCapsula2() {
+
+    if (etapa !== "aguardando2") {
+        return;
+    }
+
+    if (
+        duracaoCapsula1 === null ||
+        !Number.isFinite(duracaoCapsula1)
+    ) {
+        console.error(
+            "Não é possível iniciar a cápsula 2 sem a duração da cápsula 1."
+        );
+
+        return;
+    }
+
+    pararReprise();
+
+    dadosCapsula2 = [];
+
+    // IMPORTANTE:
+    // o tempo da cápsula 2 começa novamente em ZERO.
+    inicioRealCapsula2 = performance.now();
+
+    tempoParadoCapsula2 = null;
+
+    // A duração é COPIADA, não recalculada.
+    duracaoCapsula2 = duracaoCapsula1;
+
+    etapa = "capsula2";
+
+    atualizarInterface();
+
+    desenharGrafico();
+
+    console.log(
+        "Cápsula 2 iniciada.",
+        "Duração determinada pela cápsula 1:",
+        duracaoCapsula2,
+        "ms"
+    );
 
 
-    return (
-        MARGEM.superior +
-        (
-            1 - proporcao
-        ) * alturaGrafico
+    // --------------------------------------------------------
+    // PARADA AUTOMÁTICA
+    // --------------------------------------------------------
+
+    temporizadorCapsula2 = setTimeout(
+        finalizarCapsula2Automaticamente,
+        duracaoCapsula2
     );
 }
 
 
-/* ============================================================
-   DESENHAR GRÁFICO
-   ============================================================ */
+// ------------------------------------------------------------
+// PARADA AUTOMÁTICA DA CÁPSULA 2
+// ------------------------------------------------------------
+
+function finalizarCapsula2Automaticamente() {
+
+    if (etapa !== "capsula2") {
+        return;
+    }
+
+    tempoParadoCapsula2 = duracaoCapsula2;
+
+    // Remove qualquer leitura que tenha passado do limite.
+    dadosCapsula2 = dadosCapsula2.filter(
+        ponto => ponto.tempo <= duracaoCapsula2
+    );
+
+    etapa = "finalizada";
+
+    temporizadorCapsula2 = null;
+
+    atualizarInterface();
+
+    desenharGrafico();
+
+    console.log(
+        "Cápsula 2 finalizada automaticamente."
+    );
+}
+
+
+// ------------------------------------------------------------
+// PARAR CÁPSULA 2 MANUALMENTE
+// ------------------------------------------------------------
+
+function pararCapsula2() {
+
+    if (etapa !== "capsula2") {
+        return;
+    }
+
+    if (temporizadorCapsula2 !== null) {
+
+        clearTimeout(temporizadorCapsula2);
+
+        temporizadorCapsula2 = null;
+    }
+
+    tempoParadoCapsula2 =
+        performance.now() - inicioRealCapsula2;
+
+    // Nunca permitir que a parada manual ultrapasse
+    // a duração determinada pela cápsula 1.
+    tempoParadoCapsula2 =
+        Math.min(
+            tempoParadoCapsula2,
+            duracaoCapsula1
+        );
+
+    dadosCapsula2 = dadosCapsula2.filter(
+        ponto => ponto.tempo <= tempoParadoCapsula2
+    );
+
+    etapa = "finalizada";
+
+    atualizarInterface();
+
+    desenharGrafico();
+
+    console.log(
+        "Cápsula 2 parada manualmente."
+    );
+}
+
+
+// ------------------------------------------------------------
+// NOVA SESSÃO
+// ------------------------------------------------------------
+
+function novaSessao() {
+
+    pararReprise();
+
+    if (temporizadorCapsula2 !== null) {
+
+        clearTimeout(temporizadorCapsula2);
+
+        temporizadorCapsula2 = null;
+    }
+
+    etapa = "aguardando1";
+
+    dadosCapsula1 = [];
+    dadosCapsula2 = [];
+
+    inicioRealCapsula1 = null;
+    inicioRealCapsula2 = null;
+
+    duracaoCapsula1 = null;
+    duracaoCapsula2 = null;
+
+    tempoParadoCapsula1 = null;
+    tempoParadoCapsula2 = null;
+
+    temperaturaAtual = null;
+
+    totalLeituras = 0;
+
+    if (tempoElemento) {
+        tempoElemento.textContent = "00:00";
+    }
+
+    atualizarInterface();
+
+    desenharGrafico();
+
+    console.log("Nova sessão iniciada.");
+}
+
+
+// ------------------------------------------------------------
+// REPRISE
+// ------------------------------------------------------------
+
+function iniciarReprise() {
+
+    if (
+        dadosCapsula1.length === 0 ||
+        dadosCapsula2.length === 0
+    ) {
+        return;
+    }
+
+    pararReprise();
+
+    emReprise = true;
+
+    repriseInicio = performance.now();
+
+    const fimCapsula1 =
+        dadosCapsula1.length
+            ? dadosCapsula1[dadosCapsula1.length - 1].tempo
+            : 0;
+
+    const fimCapsula2 =
+        dadosCapsula2.length
+            ? dadosCapsula2[dadosCapsula2.length - 1].tempo
+            : 0;
+
+    repriseDuracaoTotal =
+        Math.max(
+            fimCapsula1,
+            fimCapsula2
+        );
+
+    // Durante a reprise, o gráfico começa no zero.
+    desenharGraficoReprise();
+
+    repriseAnimacao =
+        requestAnimationFrame(atualizarReprise);
+}
+
+
+function atualizarReprise() {
+
+    if (!emReprise) {
+        return;
+    }
+
+    const tempoDecorrido =
+        performance.now() - repriseInicio;
+
+    if (tempoDecorrido >= repriseDuracaoTotal) {
+
+        desenharGraficoReprise(repriseDuracaoTotal);
+
+        emReprise = false;
+        repriseAnimacao = null;
+
+        return;
+    }
+
+    desenharGraficoReprise(tempoDecorrido);
+
+    repriseAnimacao =
+        requestAnimationFrame(atualizarReprise);
+}
+
+
+function pararReprise() {
+
+    emReprise = false;
+
+    if (repriseAnimacao !== null) {
+
+        cancelAnimationFrame(repriseAnimacao);
+
+        repriseAnimacao = null;
+    }
+}
+
+
+// ------------------------------------------------------------
+// DESENHO DO GRÁFICO
+// ------------------------------------------------------------
 
 function desenharGrafico() {
 
-    if (!canvas) {
-
+    if (emReprise) {
         return;
     }
 
-
-    const larguraCSS =
-        graficoArea.clientWidth;
-
-
-    const alturaCSS =
-        graficoArea.clientHeight;
-
-
-    if (
-        larguraCSS <= 0 ||
-        alturaCSS <= 0
-    ) {
-
-        return;
-    }
-
-
-    /*
-     * Retina / telas de alta densidade.
-     */
-
-    const dpr =
-        window.devicePixelRatio || 1;
-
-
-    canvas.width =
-        Math.round(
-            larguraCSS * dpr
-        );
-
-
-    canvas.height =
-        Math.round(
-            alturaCSS * dpr
-        );
-
-
-    canvas.style.width =
-        `${larguraCSS}px`;
-
-
-    canvas.style.height =
-        `${alturaCSS}px`;
-
-
-    ctx.setTransform(
-        dpr,
-        0,
-        0,
-        dpr,
-        0,
-        0
-    );
-
-
-    const largura =
-        larguraCSS;
-
-
-    const altura =
-        alturaCSS;
-
+    const largura = graficoArea.clientWidth;
+    const altura = graficoArea.clientHeight;
 
     ctx.clearRect(
         0,
@@ -989,10 +819,527 @@ function desenharGrafico() {
         altura
     );
 
+    // Fundo
+    ctx.fillStyle = "#ffffff";
 
-    /*
-     * Fundo
-     */
+    ctx.fillRect(
+        0,
+        0,
+        largura,
+        altura
+    );
+
+
+    const margem = {
+        esquerda: 70,
+        direita: 30,
+        superior: 30,
+        inferior: 60
+    };
+
+    const graficoLargura =
+        largura -
+        margem.esquerda -
+        margem.direita;
+
+    const graficoAltura =
+        altura -
+        margem.superior -
+        margem.inferior;
+
+
+    // --------------------------------------------------------
+    // DADOS
+    // --------------------------------------------------------
+
+    let todosDados = [
+        ...dadosCapsula1,
+        ...dadosCapsula2
+    ];
+
+    if (todosDados.length === 0) {
+
+        desenharEixos(
+            margem,
+            graficoLargura,
+            graficoAltura,
+            largura,
+            altura,
+            0,
+            60,
+            20,
+            40
+        );
+
+        return;
+    }
+
+
+    // --------------------------------------------------------
+    // TEMPO MÁXIMO
+    // --------------------------------------------------------
+
+    let tempoMaximo = 0;
+
+    if (duracaoCapsula1 !== null) {
+
+        tempoMaximo = duracaoCapsula1;
+
+    } else {
+
+        tempoMaximo =
+            Math.max(
+                ...todosDados.map(
+                    ponto => ponto.tempo
+                )
+            );
+    }
+
+
+    // Nunca deixar o eixo X pequeno demais.
+    tempoMaximo =
+        Math.max(
+            tempoMaximo,
+            1000
+        );
+
+
+    // --------------------------------------------------------
+    // TEMPERATURAS
+    // --------------------------------------------------------
+
+    let temperaturas =
+        todosDados.map(
+            ponto => ponto.temperatura
+        );
+
+    let temperaturaMinima =
+        Math.min(...temperaturas);
+
+    let temperaturaMaxima =
+        Math.max(...temperaturas);
+
+
+    // Margem vertical.
+    let intervaloTemperatura =
+        temperaturaMaxima -
+        temperaturaMinima;
+
+    if (intervaloTemperatura < 1) {
+        intervaloTemperatura = 1;
+    }
+
+    temperaturaMinima -=
+        intervaloTemperatura * 0.15;
+
+    temperaturaMaxima +=
+        intervaloTemperatura * 0.15;
+
+
+    desenharEixos(
+        margem,
+        graficoLargura,
+        graficoAltura,
+        largura,
+        altura,
+        tempoMaximo,
+        temperaturaMinima,
+        temperaturaMaxima
+    );
+
+
+    // --------------------------------------------------------
+    // LINHAS
+    // --------------------------------------------------------
+
+    desenharLinha(
+        dadosCapsula1,
+        margem,
+        graficoLargura,
+        graficoAltura,
+        tempoMaximo,
+        temperaturaMinima,
+        temperaturaMaxima
+    );
+
+    desenharLinha(
+        dadosCapsula2,
+        margem,
+        graficoLargura,
+        graficoAltura,
+        tempoMaximo,
+        temperaturaMinima,
+        temperaturaMaxima
+    );
+
+
+    // --------------------------------------------------------
+    // TEMPO ATUAL
+    // --------------------------------------------------------
+
+    let tempoAtual = 0;
+
+    if (etapa === "capsula1") {
+
+        tempoAtual =
+            Math.min(
+                tempoDaCapsula1(),
+                tempoMaximo
+            );
+
+    } else if (etapa === "capsula2") {
+
+        tempoAtual =
+            Math.min(
+                tempoDaCapsula2(),
+                tempoMaximo
+            );
+
+    } else if (etapa === "aguardando2") {
+
+        tempoAtual = duracaoCapsula1;
+
+    } else if (etapa === "finalizada") {
+
+        tempoAtual = tempoMaximo;
+    }
+
+
+    if (tempoElemento) {
+
+        tempoElemento.textContent =
+            formatarTempo(
+                tempoAtual / 1000
+            );
+    }
+}
+
+
+// ------------------------------------------------------------
+// EIXOS
+// ------------------------------------------------------------
+
+function desenharEixos(
+    margem,
+    graficoLargura,
+    graficoAltura,
+    largura,
+    altura,
+    tempoMaximo,
+    temperaturaMinima,
+    temperaturaMaxima
+) {
+
+    ctx.strokeStyle = "#d7dde5";
+    ctx.lineWidth = 1;
+
+    ctx.fillStyle = "#4b5563";
+
+    ctx.font = "13px Arial";
+
+    // Número de divisões
+    const divisoesX = 6;
+    const divisoesY = 5;
+
+
+    // --------------------------------------------------------
+    // GRADE X
+    // --------------------------------------------------------
+
+    for (let i = 0; i <= divisoesX; i++) {
+
+        const proporcao =
+            i / divisoesX;
+
+        const x =
+            margem.esquerda +
+            proporcao * graficoLargura;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            x,
+            margem.superior
+        );
+
+        ctx.lineTo(
+            x,
+            margem.superior +
+            graficoAltura
+        );
+
+        ctx.stroke();
+
+
+        const valor =
+            (tempoMaximo * proporcao) / 1000;
+
+        ctx.textAlign = "center";
+
+        ctx.fillText(
+            valor.toFixed(0) + " s",
+            x,
+            margem.superior +
+            graficoAltura +
+            28
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // GRADE Y
+    // --------------------------------------------------------
+
+    for (let i = 0; i <= divisoesY; i++) {
+
+        const proporcao =
+            i / divisoesY;
+
+        const y =
+            margem.superior +
+            graficoAltura -
+            proporcao * graficoAltura;
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            margem.esquerda,
+            y
+        );
+
+        ctx.lineTo(
+            margem.esquerda +
+            graficoLargura,
+            y
+        );
+
+        ctx.stroke();
+
+
+        const valor =
+            temperaturaMinima +
+            proporcao *
+            (
+                temperaturaMaxima -
+                temperaturaMinima
+            );
+
+        ctx.textAlign = "right";
+
+        ctx.fillText(
+            valor.toFixed(1) + "°",
+            margem.esquerda - 12,
+            y + 4
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // EIXOS PRINCIPAIS
+    // --------------------------------------------------------
+
+    ctx.strokeStyle = "#374151";
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        margem.esquerda,
+        margem.superior
+    );
+
+    ctx.lineTo(
+        margem.esquerda,
+        margem.superior +
+        graficoAltura
+    );
+
+    ctx.lineTo(
+        margem.esquerda +
+        graficoLargura,
+        margem.superior +
+        graficoAltura
+    );
+
+    ctx.stroke();
+
+
+    // --------------------------------------------------------
+    // TÍTULOS
+    // --------------------------------------------------------
+
+    ctx.fillStyle = "#374151";
+
+    ctx.font = "14px Arial";
+
+    ctx.textAlign = "center";
+
+    ctx.fillText(
+        "Tempo",
+        margem.esquerda +
+        graficoLargura / 2,
+        altura - 12
+    );
+
+
+    ctx.save();
+
+    ctx.translate(
+        18,
+        margem.superior +
+        graficoAltura / 2
+    );
+
+    ctx.rotate(-Math.PI / 2);
+
+    ctx.fillText(
+        "Temperatura (°C)",
+        0,
+        0
+    );
+
+    ctx.restore();
+}
+
+
+// ------------------------------------------------------------
+// DESENHAR UMA LINHA
+// ------------------------------------------------------------
+
+function desenharLinha(
+    dados,
+    margem,
+    graficoLargura,
+    graficoAltura,
+    tempoMaximo,
+    temperaturaMinima,
+    temperaturaMaxima
+) {
+
+    if (!dados || dados.length === 0) {
+        return;
+    }
+
+
+    ctx.strokeStyle = "#0A2E5C";
+    ctx.lineWidth = 3;
+
+    ctx.beginPath();
+
+
+    dados.forEach(function (ponto, indice) {
+
+        if (
+            ponto.tempo < 0 ||
+            ponto.tempo > tempoMaximo
+        ) {
+            return;
+        }
+
+        const x =
+            margem.esquerda +
+            (
+                ponto.tempo /
+                tempoMaximo
+            ) *
+            graficoLargura;
+
+        const y =
+            margem.superior +
+            graficoAltura -
+            (
+                (
+                    ponto.temperatura -
+                    temperaturaMinima
+                ) /
+                (
+                    temperaturaMaxima -
+                    temperaturaMinima
+                )
+            ) *
+            graficoAltura;
+
+
+        if (indice === 0) {
+
+            ctx.moveTo(x, y);
+
+        } else {
+
+            ctx.lineTo(x, y);
+        }
+    });
+
+    ctx.stroke();
+
+
+    // Pontos
+    ctx.fillStyle = "#2EC4B6";
+
+    dados.forEach(function (ponto) {
+
+        if (
+            ponto.tempo < 0 ||
+            ponto.tempo > tempoMaximo
+        ) {
+            return;
+        }
+
+        const x =
+            margem.esquerda +
+            (
+                ponto.tempo /
+                tempoMaximo
+            ) *
+            graficoLargura;
+
+        const y =
+            margem.superior +
+            graficoAltura -
+            (
+                (
+                    ponto.temperatura -
+                    temperaturaMinima
+                ) /
+                (
+                    temperaturaMaxima -
+                    temperaturaMinima
+                )
+            ) *
+            graficoAltura;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            x,
+            y,
+            3,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+    });
+}
+
+
+// ------------------------------------------------------------
+// GRÁFICO DA REPRISE
+// ------------------------------------------------------------
+
+function desenharGraficoReprise(
+    tempoReprise = 0
+) {
+
+    const largura = graficoArea.clientWidth;
+    const altura = graficoArea.clientHeight;
+
+    ctx.clearRect(
+        0,
+        0,
+        largura,
+        altura
+    );
 
     ctx.fillStyle = "#ffffff";
 
@@ -1004,204 +1351,238 @@ function desenharGrafico() {
     );
 
 
-    /*
-     * Área útil
-     */
+    const margem = {
+        esquerda: 70,
+        direita: 30,
+        superior: 30,
+        inferior: 60
+    };
 
-    const larguraGrafico =
+    const graficoLargura =
         largura -
-        MARGEM.esquerda -
-        MARGEM.direita;
+        margem.esquerda -
+        margem.direita;
 
-
-    const alturaGrafico =
+    const graficoAltura =
         altura -
-        MARGEM.superior -
-        MARGEM.inferior;
+        margem.superior -
+        margem.inferior;
 
 
-    /*
-     * Dados que realmente serão exibidos.
-     */
+    const todosDados = [
+        ...dadosCapsula1,
+        ...dadosCapsula2
+    ];
 
-    const dadosVisiveis =
-        obterDadosVisiveis();
-
-
-    /*
-     * Dados para determinar a escala Y.
-     */
-
-    const dadosParaEscala =
-        dadosVisiveis;
+    if (todosDados.length === 0) {
+        return;
+    }
 
 
-    const escalaX =
-        obterEscalaX();
-
-
-    const escalaY =
-        obterEscalaY(
-            dadosParaEscala
+    const tempoMaximo =
+        Math.max(
+            duracaoCapsula1 || 0,
+            duracaoCapsula2 || 0,
+            1000
         );
 
 
-    desenharGrade(
-        larguraGrafico,
-        alturaGrafico,
-        escalaX,
-        escalaY
-    );
+    const temperaturas =
+        todosDados.map(
+            ponto => ponto.temperatura
+        );
+
+    let temperaturaMinima =
+        Math.min(...temperaturas);
+
+    let temperaturaMaxima =
+        Math.max(...temperaturas);
+
+    let intervalo =
+        temperaturaMaxima -
+        temperaturaMinima;
+
+    if (intervalo < 1) {
+        intervalo = 1;
+    }
+
+    temperaturaMinima -=
+        intervalo * 0.15;
+
+    temperaturaMaxima +=
+        intervalo * 0.15;
 
 
     desenharEixos(
-        larguraGrafico,
-        alturaGrafico,
-        escalaX,
-        escalaY
+        margem,
+        graficoLargura,
+        graficoAltura,
+        largura,
+        altura,
+        tempoMaximo,
+        temperaturaMinima,
+        temperaturaMaxima
     );
 
 
-    /*
-     * Linha da cápsula 1
-     */
+    const dadosVisiveis1 =
+        dadosCapsula1.filter(
+            ponto =>
+                ponto.tempo <= tempoReprise
+        );
 
-    const pontos1 =
-        obterPontosVisiveis(
-            dadosCapsula1
+    const dadosVisiveis2 =
+        dadosCapsula2.filter(
+            ponto =>
+                ponto.tempo <= tempoReprise
         );
 
 
-    /*
-     * Linha da cápsula 2
-     */
+    desenharLinha(
+        dadosVisiveis1,
+        margem,
+        graficoLargura,
+        graficoAltura,
+        tempoMaximo,
+        temperaturaMinima,
+        temperaturaMaxima
+    );
 
-    const pontos2 =
-        obterPontosVisiveis(
-            dadosCapsula2
-        );
-
-
-    desenharSerie(
-        pontos1,
-        escalaX,
-        escalaY,
-        larguraGrafico,
-        alturaGrafico,
-        "#0A2E5C"
+    desenharLinha(
+        dadosVisiveis2,
+        margem,
+        graficoLargura,
+        graficoAltura,
+        tempoMaximo,
+        temperaturaMinima,
+        temperaturaMaxima
     );
 
 
-    desenharSerie(
-        pontos2,
-        escalaX,
-        escalaY,
-        larguraGrafico,
-        alturaGrafico,
-        "#2EC4B6"
-    );
+    if (tempoElemento) {
 
-
-    /*
-     * Texto do eixo X
-     */
-
-    ctx.save();
-
-    ctx.fillStyle = "#59636e";
-
-    ctx.font =
-        "12px Arial";
-
-    ctx.textAlign = "center";
-
-    ctx.textBaseline = "top";
-
-    ctx.fillText(
-        "Tempo (s)",
-        MARGEM.esquerda +
-        larguraGrafico / 2,
-        altura - 28
-    );
-
-    ctx.restore();
-
-
-    /*
-     * Texto do eixo Y
-     */
-
-    ctx.save();
-
-    ctx.fillStyle = "#59636e";
-
-    ctx.font =
-        "12px Arial";
-
-    ctx.translate(
-        17,
-        MARGEM.superior +
-        alturaGrafico / 2
-    );
-
-    ctx.rotate(-Math.PI / 2);
-
-    ctx.textAlign = "center";
-
-    ctx.textBaseline = "middle";
-
-    ctx.fillText(
-        "Temperatura (°C)",
-        0,
-        0
-    );
-
-    ctx.restore();
-
-
-    /*
-     * Caso não haja nenhum dado.
-     */
-
-    if (dadosVisiveis.length === 0) {
-
-        ctx.save();
-
-        ctx.fillStyle = "#98a2b3";
-
-        ctx.font =
-            "14px Arial";
-
-        ctx.textAlign = "center";
-
-        ctx.textBaseline = "middle";
-
-        ctx.fillText(
-            "Aguardando leituras do ESP32...",
-            MARGEM.esquerda +
-            larguraGrafico / 2,
-            MARGEM.superior +
-            alturaGrafico / 2
-        );
-
-        ctx.restore();
+        tempoElemento.textContent =
+            formatarTempo(
+                tempoReprise / 1000
+            );
     }
 }
 
 
-/* ============================================================
-   DADOS VISÍVEIS
-   ============================================================ */
+// ------------------------------------------------------------
+// EVENTOS
+// ------------------------------------------------------------
 
-function obterDadosVisiveis() {
+if (iniciarBotao) {
+    iniciarBotao.addEventListener(
+        "click",
+        iniciarCapsula1
+    );
+}
 
-    if (mostrandoReprise) {
+if (pararBotao) {
+    pararBotao.addEventListener(
+        "click",
+        pararCapsula1
+    );
+}
 
-        const limite =
-            tempoReprise;
+if (iniciar2Botao) {
+    iniciar2Botao.addEventListener(
+        "click",
+        iniciarCapsula2
+    );
+}
+
+if (parar2Botao) {
+    parar2Botao.addEventListener(
+        "click",
+        pararCapsula2
+    );
+}
+
+if (repriseBotao) {
+    repriseBotao.addEventListener(
+        "click",
+        iniciarReprise
+    );
+}
+
+if (novaSessaoBotao) {
+    novaSessaoBotao.addEventListener(
+        "click",
+        novaSessao
+    );
+}
 
 
-        const dados = [];
+// ------------------------------------------------------------
+// REDIMENSIONAMENTO
+// ------------------------------------------------------------
+
+window.addEventListener(
+    "resize",
+    ajustarCanvas
+);
 
 
-        for (const ponto of dadosCapsula1) {
+// ------------------------------------------------------------
+// INICIALIZAÇÃO
+// ------------------------------------------------------------
+
+atualizarInterface();
+
+ajustarCanvas();
+
+conectarWebSocket();
+
+
+// ------------------------------------------------------------
+// ATUALIZAÇÃO VISUAL DO TEMPO
+// ------------------------------------------------------------
+
+setInterval(function () {
+
+    if (emReprise) {
+        return;
+    }
+
+    if (etapa === "capsula1") {
+
+        const tempo =
+            Math.min(
+                tempoDaCapsula1(),
+                duracaoCapsula1 ??
+                tempoDaCapsula1()
+            );
+
+        if (tempoElemento) {
+
+            tempoElemento.textContent =
+                formatarTempo(
+                    tempo / 1000
+                );
+        }
+
+        desenharGrafico();
+
+    } else if (etapa === "capsula2") {
+
+        const tempo =
+            Math.min(
+                tempoDaCapsula2(),
+                duracaoCapsula1
+            );
+
+        if (tempoElemento) {
+
+            tempoElemento.textContent =
+                formatarTempo(
+                    tempo / 1000
+                );
+        }
+
+        desenharGrafico();
+    }
+
+}, 100);
