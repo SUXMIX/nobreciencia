@@ -9,778 +9,351 @@
 
     <style>
 
-        /* =========================================================
-           RESET
-        ========================================================= */
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         :root {
             --azul: #0A2E5C;
             --azul-claro: #4A90D9;
             --verde: #2EC4B6;
             --amarelo: #F9A825;
-
             --fundo: #eef3f8;
             --branco: #ffffff;
             --texto: #162235;
             --texto-secundario: #64748b;
-
             --borda: rgba(15, 35, 60, 0.09);
-
-            --sombra:
-                0 20px 60px rgba(20, 45, 75, 0.10);
-
-            --sombra-pequena:
-                0 8px 25px rgba(20, 45, 75, 0.08);
+            --sombra: 0 20px 60px rgba(20, 45, 75, 0.10);
+            --sombra-pequena: 0 8px 25px rgba(20, 45, 75, 0.08);
         }
 
-
-        /* =========================================================
-           BODY
-        ========================================================= */
-
         body {
-
             min-height: 100vh;
-
-            font-family:
-                Inter,
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                Arial,
-                sans-serif;
-
+            font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
             color: var(--texto);
-
             background:
-                radial-gradient(
-                    circle at 10% 10%,
-                    rgba(74, 144, 217, 0.14),
-                    transparent 30%
-                ),
-
-                radial-gradient(
-                    circle at 90% 20%,
-                    rgba(46, 196, 182, 0.13),
-                    transparent 30%
-                ),
-
+                radial-gradient(circle at 10% 10%, rgba(74, 144, 217, 0.14), transparent 30%),
+                radial-gradient(circle at 90% 20%, rgba(46, 196, 182, 0.13), transparent 30%),
                 var(--fundo);
         }
 
-
-        /* =========================================================
-           HEADER
-        ========================================================= */
-
         header {
-
             position: relative;
-
             overflow: hidden;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #071f3e 0%,
-                    var(--azul) 55%,
-                    #124b82 100%
-                );
-
+            background: linear-gradient(135deg, #071f3e 0%, var(--azul) 55%, #124b82 100%);
             color: white;
-
-            padding:
-                32px
-                6vw
-                38px;
-
-            box-shadow:
-                0 10px 40px rgba(10, 46, 92, 0.20);
+            padding: 32px 6vw 38px;
+            box-shadow: 0 10px 40px rgba(10, 46, 92, 0.20);
         }
-
 
         header::before {
-
             content: "";
-
             position: absolute;
-
-            width: 450px;
-            height: 450px;
-
-            right: -180px;
-            top: -280px;
-
+            width: 450px; height: 450px;
+            right: -180px; top: -280px;
             border-radius: 50%;
-
-            background:
-                rgba(46, 196, 182, 0.12);
+            background: rgba(46, 196, 182, 0.12);
         }
-
 
         header::after {
-
             content: "";
-
             position: absolute;
-
-            width: 250px;
-            height: 250px;
-
-            left: 30%;
-            bottom: -210px;
-
+            width: 250px; height: 250px;
+            left: 30%; bottom: -210px;
             border-radius: 50%;
-
-            background:
-                rgba(74, 144, 217, 0.15);
+            background: rgba(74, 144, 217, 0.15);
         }
 
-
         .header-conteudo {
-
             position: relative;
-
             z-index: 2;
-
             max-width: 1400px;
-
             margin: auto;
         }
 
-
         .tag-projeto {
-
             display: inline-flex;
-
             align-items: center;
-
             gap: 8px;
-
-            padding:
-                7px
-                13px;
-
+            padding: 7px 13px;
             margin-bottom: 16px;
-
-            border:
-                1px solid
-                rgba(255,255,255,0.18);
-
+            border: 1px solid rgba(255,255,255,0.18);
             border-radius: 999px;
-
-            background:
-                rgba(255,255,255,0.08);
-
-            backdrop-filter:
-                blur(10px);
-
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(10px);
             font-size: 12px;
-
             font-weight: 700;
-
             letter-spacing: 0.8px;
-
             text-transform: uppercase;
-
-            color:
-                rgba(255,255,255,0.90);
+            color: rgba(255,255,255,0.90);
         }
-
 
         .ponto-status {
-
-            width: 8px;
-            height: 8px;
-
+            width: 8px; height: 8px;
             border-radius: 50%;
-
             background: var(--verde);
-
-            box-shadow:
-                0 0 12px
-                rgba(46,196,182,0.8);
+            box-shadow: 0 0 12px rgba(46,196,182,0.8);
         }
 
-
         header h1 {
-
             max-width: 850px;
-
-            font-size:
-                clamp(30px, 4vw, 52px);
-
+            font-size: clamp(30px, 4vw, 52px);
             line-height: 1.08;
-
             letter-spacing: -1.8px;
-
             font-weight: 800;
         }
 
-
         header p {
-
             max-width: 720px;
-
             margin-top: 14px;
-
-            color:
-                rgba(255,255,255,0.72);
-
-            font-size:
-                clamp(14px, 1.5vw, 18px);
-
+            color: rgba(255,255,255,0.72);
+            font-size: clamp(14px, 1.5vw, 18px);
             line-height: 1.6;
         }
 
-
-        /* =========================================================
-           MAIN
-        ========================================================= */
-
         main {
-
             width: min(1400px, 94%);
-
-            margin:
-                32px
-                auto
-                70px;
+            margin: 32px auto 70px;
         }
-
-
-        /* =========================================================
-           STATUS
-        ========================================================= */
 
         .status-card {
-
             display: flex;
-
             align-items: center;
-
             justify-content: space-between;
-
             gap: 20px;
-
-            padding:
-                17px
-                21px;
-
+            padding: 17px 21px;
             margin-bottom: 20px;
-
-            border:
-                1px solid
-                var(--borda);
-
+            border: 1px solid var(--borda);
             border-radius: 18px;
-
-            background:
-                rgba(255,255,255,0.78);
-
-            backdrop-filter:
-                blur(16px);
-
-            box-shadow:
-                var(--sombra-pequena);
+            background: rgba(255,255,255,0.78);
+            backdrop-filter: blur(16px);
+            box-shadow: var(--sombra-pequena);
         }
 
-
-        .status-esquerda {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 13px;
-        }
-
+        .status-esquerda { display: flex; align-items: center; gap: 13px; }
 
         .status-indicador {
-
-            width: 12px;
-            height: 12px;
-
+            width: 12px; height: 12px;
             border-radius: 50%;
-
             background: #94a3b8;
         }
 
-
         .status-indicador.online {
-
             background: var(--verde);
-
-            box-shadow:
-                0 0 0 5px
-                rgba(46,196,182,0.12),
-
-                0 0 16px
-                rgba(46,196,182,0.55);
+            box-shadow: 0 0 0 5px rgba(46,196,182,0.12), 0 0 16px rgba(46,196,182,0.55);
         }
 
-
         .status-titulo {
-
             font-size: 12px;
-
-            color:
-                var(--texto-secundario);
-
+            color: var(--texto-secundario);
             text-transform: uppercase;
-
             letter-spacing: 0.7px;
-
             font-weight: 700;
         }
 
-
-        .status-texto {
-
-            margin-top: 2px;
-
-            font-size: 14px;
-
-            font-weight: 600;
-        }
-
+        .status-texto { margin-top: 2px; font-size: 14px; font-weight: 600; }
 
         .status-live {
-
             display: none;
-
-            padding:
-                7px
-                11px;
-
+            padding: 7px 11px;
             border-radius: 999px;
-
-            background:
-                rgba(46,196,182,0.10);
-
-            color:
-                #148b80;
-
+            background: rgba(46,196,182,0.10);
+            color: #148b80;
             font-size: 11px;
-
             font-weight: 800;
-
             letter-spacing: 0.7px;
         }
 
-
-        .status-live.visivel {
-            display: block;
-        }
-
-
-        /* =========================================================
-           CARDS
-        ========================================================= */
+        .status-live.visivel { display: block; }
 
         .painel-informacoes {
-
             display: grid;
-
-            grid-template-columns:
-                1.4fr
-                1fr
-                1fr;
-
+            grid-template-columns: 1.4fr 1fr 1fr;
             gap: 18px;
-
             margin-bottom: 20px;
         }
 
-
         .card-info {
-
             position: relative;
-
             overflow: hidden;
-
             min-height: 145px;
-
             padding: 24px;
-
-            border:
-                1px solid
-                var(--borda);
-
+            border: 1px solid var(--borda);
             border-radius: 22px;
-
-            background:
-                rgba(255,255,255,0.82);
-
-            backdrop-filter:
-                blur(16px);
-
-            box-shadow:
-                var(--sombra-pequena);
-
-            transition:
-                transform 0.25s ease,
-                box-shadow 0.25s ease;
+            background: rgba(255,255,255,0.82);
+            backdrop-filter: blur(16px);
+            box-shadow: var(--sombra-pequena);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
         }
 
-
-        .card-info:hover {
-
-            transform:
-                translateY(-3px);
-
-            box-shadow:
-                var(--sombra);
-        }
-
+        .card-info:hover { transform: translateY(-3px); box-shadow: var(--sombra); }
 
         .card-info::after {
-
             content: "";
-
             position: absolute;
-
-            width: 130px;
-            height: 130px;
-
-            right: -60px;
-            bottom: -70px;
-
+            width: 130px; height: 130px;
+            right: -60px; bottom: -70px;
             border-radius: 50%;
-
-            background:
-                rgba(74,144,217,0.06);
+            background: rgba(74,144,217,0.06);
         }
-
 
         .card-label {
-
             position: relative;
-
             z-index: 2;
-
             font-size: 12px;
-
             font-weight: 700;
-
             text-transform: uppercase;
-
             letter-spacing: 0.7px;
-
-            color:
-                var(--texto-secundario);
+            color: var(--texto-secundario);
         }
-
 
         .temperatura-grande {
-
             position: relative;
-
             z-index: 2;
-
             margin-top: 8px;
-
-            font-size:
-                clamp(38px, 4vw, 56px);
-
+            font-size: clamp(38px, 4vw, 56px);
             font-weight: 800;
-
             letter-spacing: -2px;
-
-            color:
-                var(--azul);
+            color: var(--azul);
         }
-
 
         .temperatura-grande span {
-
             font-size: 0.48em;
-
             letter-spacing: 0;
-
-            color:
-                var(--texto-secundario);
+            color: var(--texto-secundario);
         }
-
 
         .valor-secundario {
-
             position: relative;
-
             z-index: 2;
-
             margin-top: 13px;
-
             font-size: 25px;
-
             font-weight: 750;
-
-            color:
-                var(--texto);
+            color: var(--texto);
         }
 
-
-        .valor-unidade {
-
-            font-size: 13px;
-
-            font-weight: 600;
-
-            color:
-                var(--texto-secundario);
-        }
-
-
-        /* =========================================================
-           GRÁFICO
-        ========================================================= */
+        .valor-unidade { font-size: 13px; font-weight: 600; color: var(--texto-secundario); }
 
         .grafico-card {
-
             overflow: hidden;
-
-            border:
-                1px solid
-                var(--borda);
-
+            border: 1px solid var(--borda);
             border-radius: 26px;
-
-            background:
-                rgba(255,255,255,0.90);
-
-            box-shadow:
-                var(--sombra);
+            background: rgba(255,255,255,0.90);
+            box-shadow: var(--sombra);
         }
-
 
         .grafico-topo {
-
             display: flex;
-
             justify-content: space-between;
-
             align-items: flex-start;
-
             gap: 20px;
-
-            padding:
-                25px
-                28px
-                18px;
+            padding: 25px 28px 18px;
         }
 
-
-        .grafico-titulo h2 {
-
-            font-size: 22px;
-
-            letter-spacing: -0.5px;
-        }
-
+        .grafico-titulo h2 { font-size: 22px; letter-spacing: -0.5px; }
 
         .grafico-titulo p {
-
             margin-top: 5px;
-
-            color:
-                var(--texto-secundario);
-
+            color: var(--texto-secundario);
             font-size: 13px;
         }
 
-
-        .legenda {
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 8px;
-
-            padding:
-                8px
-                12px;
-
-            border-radius: 999px;
-
-            background:
-                #f3f7fb;
-
-            font-size: 12px;
-
-            font-weight: 700;
-
-            color:
-                var(--texto-secundario);
-        }
-
-
-        .legenda-cor {
-
-            width: 9px;
-            height: 9px;
-
-            border-radius: 50%;
-
-            background:
-                var(--azul-claro);
-
-            box-shadow:
-                0 0 10px
-                rgba(74,144,217,0.45);
-        }
-
-
         .canvas-wrapper {
-
             position: relative;
-
             height: 550px;
-
-            padding:
-                0
-                18px
-                18px;
+            padding: 0 18px 18px;
         }
 
+        canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
 
-        canvas {
+        /* ============================
+           TOOLTIP / HOVER
+        ============================ */
 
-            display: block;
-
-            width: 100%;
-
-            height: 100%;
+        .tooltip-grafico {
+            position: absolute;
+            pointer-events: none;
+            background: rgba(15, 35, 60, 0.94);
+            color: #ffffff;
+            padding: 9px 13px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.6;
+            white-space: nowrap;
+            opacity: 0;
+            transform: translate(-50%, 16px);
+            transition: opacity 0.12s ease;
+            z-index: 10;
+            box-shadow: 0 10px 25px rgba(15, 35, 60, 0.25);
+            backdrop-filter: blur(8px);
+            font-family: Inter, Arial, sans-serif;
         }
 
+        .tooltip-grafico.visivel { opacity: 1; }
 
-        /* =========================================================
+        .tooltip-tempo {
+            color: #cbd5e1;
+            margin-bottom: 5px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            font-weight: 800;
+        }
+
+        .tooltip-linha { display: flex; align-items: center; gap: 7px; }
+
+        .tooltip-cor {
+            width: 9px; height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* ============================
            CONTROLES
-        ========================================================= */
+        ============================ */
 
         .barra-controles {
-
             display: flex;
-
             align-items: center;
-
             justify-content: space-between;
-
             gap: 20px;
-
-            padding:
-                18px
-                24px;
-
-            border-top:
-                1px solid
-                var(--borda);
-
-            background:
-                rgba(247,250,253,0.75);
+            padding: 18px 24px;
+            border-top: 1px solid var(--borda);
+            background: rgba(247,250,253,0.75);
         }
 
-
         .controle-descricao {
-
-            color:
-                var(--texto-secundario);
-
+            color: var(--texto-secundario);
             font-size: 12px;
-
             line-height: 1.5;
         }
 
-
-        .botoes {
-
-            display: flex;
-
-            gap: 10px;
-        }
-
+        .botoes { display: flex; gap: 10px; flex-wrap: wrap; }
 
         button {
-
             border: none;
-
             border-radius: 12px;
-
-            padding:
-                12px
-                20px;
-
+            padding: 12px 20px;
             font-size: 13px;
-
             font-weight: 750;
-
             cursor: pointer;
-
-            transition:
-                transform 0.18s ease,
-                box-shadow 0.18s ease,
-                opacity 0.18s ease;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.18s ease;
         }
 
-
-        button:hover:not(:disabled) {
-
-            transform:
-                translateY(-2px);
-        }
-
-
-        button:active:not(:disabled) {
-
-            transform:
-                translateY(0);
-        }
-
-
-        button:disabled {
-
-            opacity: 0.42;
-
-            cursor: not-allowed;
-        }
-
+        button:hover:not(:disabled) { transform: translateY(-2px); }
+        button:active:not(:disabled) { transform: translateY(0); }
+        button:disabled { opacity: 0.42; cursor: not-allowed; }
 
         #iniciar, #iniciar2 {
-
             color: white;
-
-            background:
-                linear-gradient(
-                    135deg,
-                    #20b8a9,
-                    #2EC4B6
-                );
-
-            box-shadow:
-                0 7px 18px
-                rgba(46,196,182,0.25);
+            background: linear-gradient(135deg, #20b8a9, #2EC4B6);
+            box-shadow: 0 7px 18px rgba(46,196,182,0.25);
         }
-
 
         #parar, #parar2 {
-
-            color:
-                #b42318;
-
-            background:
-                #fff0ef;
-
-            border:
-                1px solid
-                #ffd6d2;
+            color: #b42318;
+            background: #fff0ef;
+            border: 1px solid #ffd6d2;
         }
-
 
         #reprise {
             color: white;
@@ -794,386 +367,124 @@
             border: 1px solid var(--borda);
         }
 
-        .botoes {
-            flex-wrap: wrap;
-        }
-
-        .estado-experimento {
-            margin-top: 7px;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--azul);
-        }
-
-        /* =========================================================
-           INFORMAÇÕES
-        ========================================================= */
+        .estado-experimento { margin-top: 7px; font-size: 12px; font-weight: 700; color: var(--azul); }
 
         .rodape-informativo {
-
             display: grid;
-
-            grid-template-columns:
-                1fr
-                1fr;
-
+            grid-template-columns: 1fr 1fr;
             gap: 18px;
-
             margin-top: 20px;
         }
 
-
         .info-box {
-
             padding: 23px;
-
-            border:
-                1px solid
-                var(--borda);
-
+            border: 1px solid var(--borda);
             border-radius: 20px;
-
-            background:
-                rgba(255,255,255,0.75);
-
-            box-shadow:
-                var(--sombra-pequena);
+            background: rgba(255,255,255,0.75);
+            box-shadow: var(--sombra-pequena);
         }
 
+        .info-box h3 { font-size: 15px; margin-bottom: 8px; }
 
-        .info-box h3 {
-
-            font-size: 15px;
-
-            margin-bottom: 8px;
-        }
-
-
-        .info-box p {
-
-            color:
-                var(--texto-secundario);
-
-            font-size: 13px;
-
-            line-height: 1.65;
-        }
-
-
-        /* =========================================================
-           RESPONSIVIDADE
-        ========================================================= */
+        .info-box p { color: var(--texto-secundario); font-size: 13px; line-height: 1.65; }
 
         @media (max-width: 900px) {
-
-            .painel-informacoes {
-
-                grid-template-columns:
-                    1fr 1fr;
-            }
-
-            .card-info:first-child {
-
-                grid-column:
-                    1 / -1;
-            }
-
-            .rodape-informativo {
-
-                grid-template-columns:
-                    1fr;
-            }
-
-            .canvas-wrapper {
-
-                height: 450px;
-            }
+            .painel-informacoes { grid-template-columns: 1fr 1fr; }
+            .card-info:first-child { grid-column: 1 / -1; }
+            .rodape-informativo { grid-template-columns: 1fr; }
+            .canvas-wrapper { height: 450px; }
         }
 
-
         @media (max-width: 650px) {
-
-            header {
-
-                padding:
-                    26px
-                    5%
-                    30px;
-            }
-
-            main {
-
-                width: 92%;
-
-                margin-top: 20px;
-            }
-
-            .status-card {
-
-                align-items:
-                    flex-start;
-
-                flex-direction:
-                    column;
-            }
-
-            .painel-informacoes {
-
-                grid-template-columns:
-                    1fr;
-            }
-
-            .card-info:first-child {
-
-                grid-column:
-                    auto;
-            }
-
-            .grafico-topo {
-
-                flex-direction:
-                    column;
-            }
-
-            .canvas-wrapper {
-
-                height: 380px;
-
-                padding:
-                    0
-                    5px
-                    10px;
-            }
-
-            .barra-controles {
-
-                align-items:
-                    stretch;
-
-                flex-direction:
-                    column;
-            }
-
-            .botoes {
-
-                width: 100%;
-            }
-
-            button {
-
-                flex: 1;
-            }
+            header { padding: 26px 5% 30px; }
+            main { width: 92%; margin-top: 20px; }
+            .status-card { align-items: flex-start; flex-direction: column; }
+            .painel-informacoes { grid-template-columns: 1fr; }
+            .card-info:first-child { grid-column: auto; }
+            .grafico-topo { flex-direction: column; }
+            .canvas-wrapper { height: 380px; padding: 0 5px 10px; }
+            .barra-controles { align-items: stretch; flex-direction: column; }
+            .botoes { width: 100%; }
+            button { flex: 1; }
         }
 
     </style>
 </head>
 
-
 <body>
 
-
-<!-- ============================================================
-     CABEÇALHO
-============================================================ -->
-
 <header>
-
     <div class="header-conteudo">
-
         <div class="tag-projeto">
-
             <span class="ponto-status"></span>
-
             PROJETO DE CIÊNCIA E SUSTENTABILIDADE
-
         </div>
 
-
-        <h1>
-            O “Efeito Estufa” na Sala de Aula
-        </h1>
-
+        <h1>O "Efeito Estufa" na Sala de Aula</h1>
 
         <p>
             Monitoramento experimental da variação de temperatura
             utilizando sensor infravermelho e ESP32.
         </p>
-
     </div>
-
 </header>
-
-
-<!-- ============================================================
-     CONTEÚDO
-============================================================ -->
 
 <main>
 
-
     <!-- STATUS -->
-
     <div class="status-card">
-
         <div class="status-esquerda">
-
-            <div
-                class="status-indicador"
-                id="statusIndicador">
-            </div>
-
-
+            <div class="status-indicador" id="statusIndicador"></div>
             <div>
-
-                <div class="status-titulo">
-                    Comunicação do experimento
-                </div>
-
-                <div
-                    class="status-texto"
-                    id="statusTexto">
-
-                    Conectando ao servidor...
-
-                </div>
-
+                <div class="status-titulo">Comunicação do experimento</div>
+                <div class="status-texto" id="statusTexto">Conectando ao servidor...</div>
             </div>
-
         </div>
 
-
-        <div
-            class="status-live"
-            id="statusLive">
-
-            ● DADOS AO VIVO
-
-        </div>
-
+        <div class="status-live" id="statusLive">● DADOS AO VIVO</div>
     </div>
 
-
-
-    <!-- ========================================================
-         INDICADORES
-    ======================================================== -->
-
+    <!-- INDICADORES -->
     <section class="painel-informacoes">
 
-
         <div class="card-info">
-
-            <div class="card-label">
-                Temperatura atual
-            </div>
-
-
-            <div
-                class="temperatura-grande"
-                id="temperatura1">
-
+            <div class="card-label">Temperatura atual</div>
+            <div class="temperatura-grande" id="temperatura1">
                 -- <span>°C</span>
-
             </div>
-
         </div>
-
-
 
         <div class="card-info">
-
-            <div class="card-label">
-                Tempo de experimento
+            <div class="card-label">Tempo de experimento</div>
+            <div class="valor-secundario" id="tempoAtual">
+                0.0 <span class="valor-unidade">segundos</span>
             </div>
-
-
-            <div
-                class="valor-secundario"
-                id="tempoAtual">
-
-                0.0
-
-                <span class="valor-unidade">
-                    segundos
-                </span>
-
-            </div>
-
         </div>
-
-
 
         <div class="card-info">
-
-            <div class="card-label">
-                Leituras recebidas
-            </div>
-
-
-            <div
-                class="valor-secundario"
-                id="quantidadeLeituras">
-
-                0
-
-            </div>
-
-            <div
-                class="valor-unidade">
-
-                dados registrados
-
-            </div>
-
+            <div class="card-label">Leituras recebidas</div>
+            <div class="valor-secundario" id="quantidadeLeituras">0</div>
+            <div class="valor-unidade">dados registrados</div>
         </div>
-
 
     </section>
 
-
-
-    <!-- ========================================================
-         GRÁFICO
-    ======================================================== -->
-
+    <!-- GRÁFICO -->
     <section class="grafico-card">
 
-
         <div class="grafico-topo">
-
             <div class="grafico-titulo">
-
-                <h2>
-                    Variação da temperatura
-                </h2>
-
-                <p>
-                    Temperatura medida ao longo do tempo
-                </p>
-
+                <h2>Variação da temperatura</h2>
+                <p>Temperatura medida ao longo do tempo — passe o mouse sobre o gráfico para ver os valores</p>
             </div>
-
-
-            <div class="legenda">
-
-                <span class="legenda-cor"></span>
-
-                Cápsula 1
-
-            </div>
-
         </div>
-
 
         <div class="canvas-wrapper">
-
             <canvas id="grafico"></canvas>
-
+            <div id="tooltipGrafico" class="tooltip-grafico"></div>
         </div>
 
-
         <div class="barra-controles">
-
             <div class="controle-descricao">
                 <div id="descricaoControle">Prepare a primeira cápsula para iniciar a coleta.</div>
                 <div class="estado-experimento" id="estadoExperimento">Aguardando cápsula 1</div>
@@ -1187,58 +498,36 @@
                 <button id="reprise" disabled>Reprise geral</button>
                 <button id="novaSessao">Novo experimento</button>
             </div>
-
         </div>
 
     </section>
 
-
-
-    <!-- ========================================================
-         INFORMAÇÕES
-    ======================================================== -->
-
+    <!-- INFORMAÇÕES -->
     <section class="rodape-informativo">
 
-
         <div class="info-box">
-
-            <h3>
-                Instrumentação
-            </h3>
-
+            <h3>Instrumentação</h3>
             <p>
                 Os dados são obtidos pelo sensor MLX90614,
                 conectado ao ESP32. As leituras são enviadas
                 pela rede e apresentadas neste painel em tempo
                 real.
             </p>
-
         </div>
 
-
         <div class="info-box">
-
-            <h3>
-                Sobre o experimento
-            </h3>
-
+            <h3>Sobre o experimento</h3>
             <p>
                 O sistema permite acompanhar visualmente a
                 evolução da temperatura durante o procedimento,
                 facilitando a comparação dos resultados
                 experimentais.
             </p>
-
         </div>
-
 
     </section>
 
-
 </main>
-
-
 
 <script>
 
@@ -1266,6 +555,8 @@ const botaoNovaSessao = document.getElementById("novaSessao");
 const descricaoControle = document.getElementById("descricaoControle");
 const estadoExperimento = document.getElementById("estadoExperimento");
 
+const tooltipGrafico = document.getElementById("tooltipGrafico");
+
 /* ================================================================
    DADOS E ESTADO
 ================================================================ */
@@ -1286,7 +577,6 @@ let inicioRealCapsula2 = null;
 let temporizadorCapsula2 = null;
 
 let temperaturaAtual = null;
-let temperaturaAlvo = null;
 let ultimoTempoRecebido = 0;
 let tempoVisual = 0;
 
@@ -1296,6 +586,29 @@ let tempoReprise = 0;
 let repriseEmExecucao = false;
 
 const MAX_PONTOS_GRAFICO = 600;
+
+/* ================================================================
+   ESTADO DO GRÁFICO (para hover)
+================================================================ */
+
+const graficoEstado = {
+    margemEsquerda: 66,
+    margemDireita: 25,
+    margemSuperior: 25,
+    margemInferior: 55,
+    graficoLargura: 0,
+    graficoAltura: 0,
+    tempoMax: 10,
+    temperaturaMin: 0,
+    temperaturaMax: 100,
+    largura: 0,
+    altura: 0,
+    dados1Vis: [],
+    dados2Vis: []
+};
+
+let hoverTempo = null;
+let hoverPontos = { p1: null, p2: null };
 
 /* ================================================================
    CANVAS
@@ -1332,646 +645,23 @@ function obterPontosVisuais(dados) {
     return resultado;
 }
 
-function atualizarInterfaceEstado() {
-    if (etapa === "aguardando1") {
-        descricaoControle.textContent = "Prepare a primeira cápsula para iniciar a coleta.";
-        estadoExperimento.textContent = "Aguardando cápsula 1";
-    } else if (etapa === "capsula1") {
-        descricaoControle.textContent = "Cápsula 1 em coleta. Clique em Parar quando terminar.";
-        estadoExperimento.textContent = "Coletando cápsula 1";
-    } else if (etapa === "aguardando2") {
-        descricaoControle.textContent = "Cápsula 1 armazenada. Adicione a cápsula 2 e inicie a segunda coleta.";
-        estadoExperimento.textContent = "Cápsula 1 parada — aguardando cápsula 2";
-    } else if (etapa === "capsula2") {
-        descricaoControle.textContent = "Cápsula 2 em coleta. Ela será encerrada automaticamente exatamente após o mesmo período da cápsula 1.";
-        estadoExperimento.textContent = "Coletando cápsula 2";
-    } else if (etapa === "finalizada") {
-        descricaoControle.textContent = "As duas séries foram armazenadas. Faça a reprise geral para comparar os resultados.";
-        estadoExperimento.textContent = "Experimento concluído";
-    } else if (etapa === "reprise") {
-        descricaoControle.textContent = "Reprise geral: as duas curvas estão sendo reproduzidas desde o início.";
-        estadoExperimento.textContent = "Reprise geral";
-    }
+/* Calcula um passo "bonito" (1, 2, 5, 10, 20, 50...) garantindo
+   sempre valores INTEIROS para os eixos. */
+function calcularPasso(range, alvoDivisoes) {
+    if (!isFinite(range) || range <= 0 || alvoDivisoes <= 0) return 1;
+
+    const bruto = range / alvoDivisoes;
+    const mag = Math.pow(10, Math.floor(Math.log10(bruto)));
+    const norm = bruto / mag;
+
+    let mult;
+    if (norm <= 1) mult = 1;
+    else if (norm <= 2) mult = 2;
+    else if (norm <= 5) mult = 5;
+    else mult = 10;
+
+    const passo = mult * mag;
+    return Math.max(1, Math.round(passo));
 }
 
-function atualizarBotoes() {
-    botaoIniciar.disabled = etapa !== "aguardando1";
-    botaoParar.disabled = etapa !== "capsula1";
-
-    botaoIniciar2.disabled = etapa !== "aguardando2";
-    botaoParar2.disabled = etapa !== "capsula2";
-
-    botaoReprise.disabled = !(etapa === "finalizada" || etapa === "reprise");
-}
-
-/* ================================================================
-   DESENHAR GRÁFICO
-================================================================ */
-
-function desenharGrafico() {
-    const largura = canvas.clientWidth;
-    const altura = canvas.clientHeight;
-
-    ctx.clearRect(0, 0, largura, altura);
-
-    const margemEsquerda = 66;
-    const margemDireita = 25;
-    const margemSuperior = 25;
-    const margemInferior = 55;
-
-    const graficoLargura = largura - margemEsquerda - margemDireita;
-    const graficoAltura = altura - margemSuperior - margemInferior;
-
-    let dadosBase;
-
-    let dados1 = dadosCapsula1;
-    let dados2 = dadosCapsula2;
-
-    if (mostrandoReprise || etapa === "reprise") {
-        dados1 = dadosCapsula1.filter(p => p.tempo <= tempoReprise + 0.000001);
-        dados2 = dadosCapsula2.filter(p => p.tempo <= tempoReprise + 0.000001);
-        dadosBase = [...dados1, ...dados2];
-    } else {
-        dadosBase = [...dadosCapsula1, ...dadosCapsula2];
-    }
-
-    dados1 = obterPontosVisuais(dados1);
-    dados2 = obterPontosVisuais(dados2);
-
-    if (dadosBase.length === 0) {
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillStyle = "#94a3b8";
-        ctx.font = "600 14px Arial";
-        ctx.fillText("Aguardando o início do experimento...", largura / 2, altura / 2);
-        return;
-    }
-
-    const temperaturas = dadosBase.map(p => p.temperatura);
-
-    if (!mostrandoReprise && temperaturaAtual !== null) {
-        temperaturas.push(temperaturaAtual);
-    }
-
-    let temperaturaMin = Math.min(...temperaturas);
-    let temperaturaMax = Math.max(...temperaturas);
-
-    let faixa = Math.max(temperaturaMax - temperaturaMin, 2);
-    temperaturaMin -= faixa * 0.15;
-    temperaturaMax += faixa * 0.15;
-
-    let tempoMax = 10;
-
-    if (mostrandoReprise || etapa === "reprise") {
-        tempoMax = Math.max(duracaoCapsula1 || 10, 0.1);
-    } else if (etapa === "aguardando2" || etapa === "finalizada") {
-        tempoMax = Math.max(duracaoCapsula1 || ultimoTempoRecebido, 10);
-    } else {
-        tempoMax = Math.max(tempoVisual, ultimoTempoRecebido, 10);
-    }
-
-    function converterX(tempo) {
-        return margemEsquerda + (tempo / tempoMax) * graficoLargura;
-    }
-
-    function converterY(temperatura) {
-        return margemSuperior +
-            ((temperaturaMax - temperatura) / (temperaturaMax - temperaturaMin)) * graficoAltura;
-    }
-
-    /* ============================================================
-       GRADE Y
-    ============================================================ */
-
-    ctx.lineWidth = 1;
-    ctx.font = "12px Arial";
-
-    const linhas = 6;
-
-    for (let i = 0; i <= linhas; i++) {
-        const y = margemSuperior + (graficoAltura / linhas) * i;
-
-        ctx.strokeStyle = "rgba(100,116,139,0.12)";
-        ctx.beginPath();
-        ctx.moveTo(margemEsquerda, y);
-        ctx.lineTo(largura - margemDireita, y);
-        ctx.stroke();
-
-        const valor = temperaturaMax -
-            ((temperaturaMax - temperaturaMin) * i / linhas);
-
-        ctx.fillStyle = "#64748b";
-        ctx.textAlign = "right";
-        ctx.textBaseline = "middle";
-        ctx.fillText(valor.toFixed(1) + " °C", margemEsquerda - 10, y);
-    }
-
-    /* ============================================================
-       EIXO X
-    ============================================================ */
-
-    const divisoesX = 6;
-
-    for (let i = 0; i <= divisoesX; i++) {
-        const tempo = tempoMax * i / divisoesX;
-        const x = converterX(tempo);
-
-        ctx.strokeStyle = "rgba(100,116,139,0.09)";
-        ctx.beginPath();
-        ctx.moveTo(x, margemSuperior);
-        ctx.lineTo(x, altura - margemInferior);
-        ctx.stroke();
-
-        ctx.fillStyle = "#64748b";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "top";
-        ctx.fillText(tempo.toFixed(1) + " s", x, altura - margemInferior + 13);
-    }
-
-    function desenharSerie(dados, preenchimento, linha, espessura) {
-        if (dados.length === 0) return;
-
-        const pontos = dados.map(p => ({
-            x: converterX(p.tempo),
-            y: converterY(p.temperatura)
-        }));
-
-        if (preenchimento && pontos.length > 1) {
-            const area = new Path2D();
-            area.moveTo(pontos[0].x, pontos[0].y);
-
-            for (let i = 1; i < pontos.length; i++) {
-                const anterior = pontos[i - 1];
-                const atual = pontos[i];
-                const meioX = (anterior.x + atual.x) / 2;
-                const meioY = (anterior.y + atual.y) / 2;
-
-                area.quadraticCurveTo(anterior.x, anterior.y, meioX, meioY);
-            }
-
-            const ultimo = pontos[pontos.length - 1];
-            area.lineTo(ultimo.x, altura - margemInferior);
-            area.lineTo(pontos[0].x, altura - margemInferior);
-            area.closePath();
-
-            const gradiente = ctx.createLinearGradient(
-                0, margemSuperior, 0, altura - margemInferior
-            );
-
-            gradiente.addColorStop(0, preenchimento);
-            gradiente.addColorStop(1, "rgba(74,144,217,0.01)");
-
-            ctx.fillStyle = gradiente;
-            ctx.fill(area);
-        }
-
-        ctx.beginPath();
-        ctx.moveTo(pontos[0].x, pontos[0].y);
-
-        for (let i = 1; i < pontos.length; i++) {
-            const anterior = pontos[i - 1];
-            const atual = pontos[i];
-            const meioX = (anterior.x + atual.x) / 2;
-            const meioY = (anterior.y + atual.y) / 2;
-
-            ctx.quadraticCurveTo(anterior.x, anterior.y, meioX, meioY);
-        }
-
-        if (pontos.length > 1) {
-            const ultimo = pontos[pontos.length - 1];
-            ctx.lineTo(ultimo.x, ultimo.y);
-        }
-
-        ctx.strokeStyle = linha;
-        ctx.lineWidth = espessura;
-        ctx.lineCap = "round";
-        ctx.lineJoin = "round";
-        ctx.shadowColor = "rgba(74,144,217,0.18)";
-        ctx.shadowBlur = 7;
-        ctx.stroke();
-        ctx.shadowBlur = 0;
-    }
-
-    /* ============================================================
-       SÉRIES
-    ============================================================ */
-
-    if (mostrandoReprise || etapa === "reprise") {
-        desenharSerie(dados1, "rgba(74,144,217,0.18)", "#4A90D9", 3.5);
-        desenharSerie(dados2, "rgba(46,196,182,0.14)", "#2EC4B6", 3.5);
-    } else {
-        desenharSerie(dados1, "rgba(74,144,217,0.18)", "#4A90D9", 3.5);
-        desenharSerie(dados2, "rgba(46,196,182,0.14)", "#2EC4B6", 3.5);
-    }
-
-    /* ============================================================
-       TEMPERATURA AO VIVO
-       Não há bolinha nem marcador na ponta do gráfico.
-    ============================================================ */
-
-    /* ============================================================
-       TÍTULOS DOS EIXOS
-    ============================================================ */
-
-    ctx.fillStyle = "#475569";
-    ctx.font = "600 12px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "bottom";
-
-    ctx.fillText(
-        "Tempo decorrido",
-        margemEsquerda + graficoLargura / 2,
-        altura - 3
-    );
-
-    ctx.save();
-    ctx.translate(14, margemSuperior + graficoAltura / 2);
-    ctx.rotate(-Math.PI / 2);
-    ctx.fillText("Temperatura", 0, 0);
-    ctx.restore();
-}
-
-/* ================================================================
-   RECEBER TEMPERATURA
-================================================================ */
-
-function receberTemperatura(dados) {
-    if (dados.temperatura === undefined || dados.temperatura === null) return;
-    if (dados.tempo === undefined || dados.tempo === null) return;
-
-    const temperatura = Number(dados.temperatura);
-    const tempoESP32 = Number(dados.tempo);
-
-    if (!Number.isFinite(temperatura) || !Number.isFinite(tempoESP32)) return;
-
-    const tempoESP32Segundos = tempoESP32 / 1000;
-
-    if (tempoInicial === null) {
-        tempoInicial = tempoESP32Segundos;
-    }
-
-    const tempoRelativo = Math.max(0, tempoESP32Segundos - tempoInicial);
-
-    temperaturaAlvo = temperatura;
-    temperaturaAtual = temperatura;
-    ultimoTempoRecebido = tempoRelativo;
-
-    /* ============================================================
-       CÁPSULA 1
-    ============================================================ */
-
-    if (etapa === "capsula1") {
-        tempoVisual = Math.min(
-            Math.max(0, performance.now() - inicioRealCapsula1) / 1000,
-            duracaoCapsula1 ?? Infinity
-        );
-
-        dadosCapsula1.push({
-            tempo: tempoRelativo,
-            temperatura: temperatura
-        });
-
-        quantidadeLeiturasElemento.textContent = dadosCapsula1.length;
-    }
-
-    /* ============================================================
-       CÁPSULA 2
-
-       O relógio da cápsula 2 começa em zero no momento em que ela
-       é iniciada. Nenhuma leitura cujo tempo ultrapasse a duração
-       REAL da cápsula 1 é armazenada.
-    ============================================================ */
-
-    else if (etapa === "capsula2") {
-        if (inicioCapsula2ESP === null) {
-            inicioCapsula2ESP = tempoESP32Segundos;
-        }
-
-        const tempoCapsula2 = Math.max(
-            0,
-            tempoESP32Segundos - inicioCapsula2ESP
-        );
-
-        tempoVisual = Math.min(
-            Math.max(0, performance.now() - inicioRealCapsula2) / 1000,
-            duracaoCapsula1
-        );
-
-        if (tempoCapsula2 <= duracaoCapsula1) {
-            dadosCapsula2.push({
-                tempo: tempoCapsula2,
-                temperatura: temperatura
-            });
-
-            quantidadeLeiturasElemento.textContent =
-                dadosCapsula1.length + dadosCapsula2.length;
-        }
-
-        /*
-         * Se uma leitura chegou depois do limite, ela NÃO entra na
-         * série. A parada automática é feita pelo temporizador real
-         * abaixo; este teste é apenas uma segunda proteção.
-         */
-        if (tempoCapsula2 >= duracaoCapsula1) {
-            pararCapsula2();
-        }
-    }
-
-    tempoAtualElemento.innerHTML = tempoVisual.toFixed(1) +
-        ' <span class="valor-unidade">segundos</span>';
-}
-
-/* ================================================================
-   ANIMAÇÃO PRINCIPAL
-================================================================ */
-
-function animar() {
-    if (etapa === "reprise" && repriseEmExecucao) {
-        tempoReprise = Math.min(
-            duracaoCapsula1 || 0,
-            (performance.now() - inicioReprise) / 1000
-        );
-
-        tempoAtualElemento.innerHTML = tempoReprise.toFixed(1) +
-            ' <span class="valor-unidade">segundos</span>';
-
-        desenharGrafico();
-
-        if (tempoReprise >= (duracaoCapsula1 || 0)) {
-            repriseEmExecucao = false;
-        }
-    } else {
-        desenharGrafico();
-    }
-
-    requestAnimationFrame(animar);
-}
-
-/* ================================================================
-   INICIAR CÁPSULA 1
-================================================================ */
-
-botaoIniciar.addEventListener("click", function () {
-    dadosCapsula1 = [];
-    dadosCapsula2 = [];
-
-    tempoInicial = null;
-    tempoParadoCapsula1 = null;
-    tempoParadoCapsula2 = null;
-    duracaoCapsula1 = null;
-
-    inicioCapsula2ESP = null;
-    inicioRealCapsula1 = performance.now();
-    inicioRealCapsula2 = null;
-
-    if (temporizadorCapsula2) {
-        clearTimeout(temporizadorCapsula2);
-        temporizadorCapsula2 = null;
-    }
-
-    temperaturaAtual = null;
-    temperaturaAlvo = null;
-    ultimoTempoRecebido = 0;
-    tempoVisual = 0;
-
-    mostrandoReprise = false;
-    repriseEmExecucao = false;
-    tempoReprise = 0;
-    inicioReprise = null;
-
-    etapa = "capsula1";
-
-    temperaturaElemento.innerHTML = '-- <span>°C</span>';
-    tempoAtualElemento.innerHTML = '0.0 <span class="valor-unidade">segundos</span>';
-    quantidadeLeiturasElemento.textContent = "0";
-
-    atualizarInterfaceEstado();
-    atualizarBotoes();
-    desenharGrafico();
-});
-
-/* ================================================================
-   PARAR CÁPSULA 1
-================================================================ */
-
-botaoParar.addEventListener("click", function () {
-    if (etapa !== "capsula1") return;
-
-    /*
-     * A duração é medida pelo relógio real do navegador no instante
-     * exato do clique. Isso define o intervalo oficial do experimento.
-     */
-    duracaoCapsula1 = Math.max(
-        0,
-        (performance.now() - inicioRealCapsula1) / 1000
-    );
-
-    tempoParadoCapsula1 = duracaoCapsula1;
-    tempoVisual = duracaoCapsula1;
-
-    etapa = "aguardando2";
-
-    atualizarInterfaceEstado();
-    atualizarBotoes();
-    desenharGrafico();
-});
-
-/* ================================================================
-   INICIAR CÁPSULA 2
-================================================================ */
-
-botaoIniciar2.addEventListener("click", function () {
-    if (etapa !== "aguardando2" || duracaoCapsula1 === null) return;
-
-    etapa = "capsula2";
-    mostrandoReprise = false;
-
-    tempoVisual = 0;
-    tempoParadoCapsula2 = null;
-    inicioCapsula2ESP = null;
-    inicioRealCapsula2 = performance.now();
-
-    quantidadeLeiturasElemento.textContent = dadosCapsula1.length;
-
-    /*
-     * A cápsula 2 tem exatamente a mesma duração real da cápsula 1.
-     * O temporizador impede que ela continue coletando depois desse
-     * intervalo, independentemente da frequência das leituras.
-     */
-    if (temporizadorCapsula2) {
-        clearTimeout(temporizadorCapsula2);
-    }
-
-    temporizadorCapsula2 = setTimeout(function () {
-        if (etapa === "capsula2") {
-            pararCapsula2();
-        }
-    }, duracaoCapsula1 * 1000);
-
-    atualizarInterfaceEstado();
-    atualizarBotoes();
-    desenharGrafico();
-});
-
-/* ================================================================
-   PARAR CÁPSULA 2
-================================================================ */
-
-function pararCapsula2() {
-    if (etapa !== "capsula2") return;
-
-    if (temporizadorCapsula2) {
-        clearTimeout(temporizadorCapsula2);
-        temporizadorCapsula2 = null;
-    }
-
-    /*
-     * A duração visual também é limitada exatamente à duração da
-     * cápsula 1. Leituras posteriores não são adicionadas.
-     */
-    tempoParadoCapsula2 = duracaoCapsula1;
-    tempoVisual = duracaoCapsula1;
-
-    etapa = "finalizada";
-
-    quantidadeLeiturasElemento.textContent =
-        dadosCapsula1.length + dadosCapsula2.length;
-
-    atualizarInterfaceEstado();
-    atualizarBotoes();
-    desenharGrafico();
-}
-
-botaoParar2.addEventListener("click", function () {
-    /*
-     * O botão continua disponível como parada manual, mas a duração
-     * armazenada permanece exatamente igual à da cápsula 1.
-     */
-    if (etapa !== "capsula2") return;
-    pararCapsula2();
-});
-
-/* ================================================================
-   REPRISE GERAL
-================================================================ */
-
-botaoReprise.addEventListener("click", function () {
-    if (dadosCapsula1.length === 0 || dadosCapsula2.length === 0) return;
-
-    mostrandoReprise = true;
-    etapa = "reprise";
-
-    /*
-     * Começa realmente do zero e revela as duas curvas ao longo do
-     * mesmo intervalo usado no experimento. Não mostra tudo de uma vez.
-     */
-    tempoReprise = 0;
-    inicioReprise = performance.now();
-    repriseEmExecucao = true;
-    tempoVisual = 0;
-
-    atualizarInterfaceEstado();
-    atualizarBotoes();
-    desenharGrafico();
-});
-
-/* ================================================================
-   NOVO EXPERIMENTO
-================================================================ */
-
-botaoNovaSessao.addEventListener("click", function () {
-    if (temporizadorCapsula2) {
-        clearTimeout(temporizadorCapsula2);
-        temporizadorCapsula2 = null;
-    }
-
-    etapa = "aguardando1";
-    dadosCapsula1 = [];
-    dadosCapsula2 = [];
-
-    tempoInicial = null;
-    tempoParadoCapsula1 = null;
-    tempoParadoCapsula2 = null;
-    duracaoCapsula1 = null;
-
-    inicioCapsula2ESP = null;
-    inicioRealCapsula1 = null;
-    inicioRealCapsula2 = null;
-
-    temperaturaAtual = null;
-    temperaturaAlvo = null;
-    ultimoTempoRecebido = 0;
-    tempoVisual = 0;
-
-    mostrandoReprise = false;
-    repriseEmExecucao = false;
-    inicioReprise = null;
-    tempoReprise = 0;
-
-    temperaturaElemento.innerHTML = '-- <span>°C</span>';
-    tempoAtualElemento.innerHTML = '0.0 <span class="valor-unidade">segundos</span>';
-    quantidadeLeiturasElemento.textContent = "0";
-
-    atualizarInterfaceEstado();
-    atualizarBotoes();
-    desenharGrafico();
-});
-
-/* ================================================================
-   WEBSOCKET
-================================================================ */
-
-const protocolo = location.protocol === "https:" ? "wss:" : "ws:";
-const enderecoWebSocket = `${protocolo}//${location.host}/api/ws`;
-
-let ws;
-
-function conectarWebSocket() {
-    ws = new WebSocket(enderecoWebSocket);
-
-    ws.onopen = function () {
-        statusTexto.textContent = "Conectado ao ESP32 / Cloudflare";
-        statusIndicador.classList.add("online");
-        statusLive.classList.add("visivel");
-    };
-
-    ws.onmessage = function (event) {
-        try {
-            const dados = JSON.parse(event.data);
-            receberTemperatura(dados);
-        }
-        catch (erro) {
-            console.error("Erro ao interpretar dados:", erro);
-        }
-    };
-
-    ws.onerror = function () {
-        statusTexto.textContent = "Erro na comunicação com o servidor";
-        statusIndicador.classList.remove("online");
-        statusLive.classList.remove("visivel");
-    };
-
-    ws.onclose = function () {
-        statusTexto.textContent = "Conexão encerrada. Tentando reconectar...";
-        statusIndicador.classList.remove("online");
-        statusLive.classList.remove("visivel");
-
-        setTimeout(conectarWebSocket, 2000);
-    };
-}
-
-/* ================================================================
-   INICIALIZAÇÃO
-================================================================ */
-
-ajustarCanvas();
-atualizarInterfaceEstado();
-atualizarBotoes();
-conectarWebSocket();
-requestAnimationFrame(animar);
-
-</script>
-
-
-</body>
-</html>
+function encontrarPontoMaisProximo(dados, tempo) {
