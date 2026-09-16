@@ -1,15 +1,64 @@
 // ============================================================
 // EFEITO ESTUFA — MONITORAMENTO
-// app.js
+// Controle das cápsulas, WebSocket e gráfico
 // ============================================================
 
 
 // ============================================================
-// CONFIGURAÇÃO DO WEBSOCKET
+// CONFIGURAÇÃO
 // ============================================================
 
-const enderecoWebSocket =
+const ENDERECO_WEBSOCKET =
     "wss://nobreciencia.lilolilo09666.workers.dev/api/ws";
+
+const COR_CAPSULA_1 = "#0A2E5C";
+const COR_CAPSULA_2 = "#F9A825";
+
+
+// ============================================================
+// ESTADO DO EXPERIMENTO
+// ============================================================
+
+let etapa = "aguardando1";
+
+// Dados das cápsulas
+let dadosCapsula1 = [];
+let dadosCapsula2 = [];
+
+// Instantes reais de início
+let inicioRealCapsula1 = null;
+let inicioRealCapsula2 = null;
+
+// Duração real das cápsulas
+let duracaoCapsula1 = null;
+let duracaoCapsula2 = null;
+
+// Instantes de parada
+let tempoParadoCapsula1 = null;
+let tempoParadoCapsula2 = null;
+
+// Temperaturas finais
+let temperaturaFinalCapsula1 = null;
+let temperaturaFinalCapsula2 = null;
+
+// Última temperatura recebida
+let temperaturaAtual = null;
+
+// Contagem total de leituras
+let totalLeituras = 0;
+
+// Timer automático da cápsula 2
+let temporizadorCapsula2 = null;
+
+// WebSocket
+let ws = null;
+let reconexaoTimer = null;
+
+// Reprise
+let emReprise = false;
+let repriseInicio = null;
+let repriseAnimacao = null;
+let repriseDuracaoTotal = 0;
 
 
 // ============================================================
@@ -17,8 +66,7 @@ const enderecoWebSocket =
 // ============================================================
 
 const canvas = document.getElementById("graph");
-const graficoArea = document.getElementById("graficoArea");
-const ctx = canvas.getContext("2d");
+const ctx = canvas ? canvas.getContext("2d") : null;
 
 const statusIndicador =
     document.getElementById("statusIndicador");
@@ -29,493 +77,144 @@ const statusTexto =
 const statusLive =
     document.getElementById("statusLive");
 
-const temperaturaElemento =
+const temperatura1 =
     document.getElementById("temperatura1");
 
-const tempoElemento =
+const tempoAtual =
     document.getElementById("tempoAtual");
 
-const quantidadeLeiturasElemento =
+const quantidadeLeituras =
     document.getElementById("quantidadeLeituras");
 
-const estadoExperimentoElemento =
+const estadoExperimento =
     document.getElementById("estadoExperimento");
 
-const descricaoControleElemento =
+const descricaoControle =
     document.getElementById("descricaoControle");
 
-const iniciarBotao =
+const botaoIniciar =
     document.getElementById("iniciar");
 
-const pararBotao =
+const botaoParar =
     document.getElementById("parar");
 
-const iniciar2Botao =
+const botaoIniciar2 =
     document.getElementById("iniciar2");
 
-const parar2Botao =
+const botaoParar2 =
     document.getElementById("parar2");
 
-const repriseBotao =
+const botaoReprise =
     document.getElementById("reprise");
 
-const novaSessaoBotao =
+const botaoNovaSessao =
     document.getElementById("novaSessao");
 
 
 // ============================================================
-// ESTADO DO EXPERIMENTO
+// UTILIDADES
 // ============================================================
 
-let etapa = "aguardando1";
-
-let dadosCapsula1 = [];
-let dadosCapsula2 = [];
-
-let inicioRealCapsula1 = null;
-let inicioRealCapsula2 = null;
-
-let duracaoCapsula1 = null;
-let duracaoCapsula2 = null;
-
-let tempoParadoCapsula1 = null;
-let tempoParadoCapsula2 = null;
-
-let temperaturaAtual = null;
-
-let temperaturaFinalCapsula1 = null;
-let temperaturaFinalCapsula2 = null;
-
-let totalLeituras = 0;
-
-let temporizadorCapsula2 = null;
-
-
-// ============================================================
-// ESTADO DO WEBSOCKET
-// ============================================================
-
-let ws = null;
-let reconexaoTimer = null;
-
-
-// ============================================================
-// ESTADO DA REPRISE
-// ============================================================
-
-let emReprise = false;
-let repriseInicio = null;
-let repriseAnimacao = null;
-let repriseDuracaoTotal = 0;
-
-
-// ============================================================
-// CORES DAS CÁPSULAS
-// ============================================================
-
-const COR_CAPSULA_1 = "#0A2E5C";
-const COR_CAPSULA_2 = "#F9A825";
-
-
-// ============================================================
-// CANVAS
-// ============================================================
-
-function ajustarCanvas() {
-
-    const largura = graficoArea.clientWidth;
-    const altura = graficoArea.clientHeight;
-
-    const dpr = window.devicePixelRatio || 1;
-
-    canvas.width = largura * dpr;
-    canvas.height = altura * dpr;
-
-    canvas.style.width = largura + "px";
-    canvas.style.height = altura + "px";
-
-    ctx.setTransform(
-        dpr,
-        0,
-        0,
-        dpr,
-        0,
-        0
-    );
-
-    desenharGrafico();
+function numeroValido(valor) {
+    return typeof valor === "number" && Number.isFinite(valor);
 }
 
 
-// ============================================================
-// FUNÇÕES AUXILIARES
-// ============================================================
-
 function formatarTemperatura(valor) {
-
-    if (
-        valor === null ||
-        valor === undefined ||
-        !Number.isFinite(valor)
-    ) {
+    if (!numeroValido(valor)) {
         return "--";
     }
 
-    return (
-        valor.toFixed(2).replace(".", ",") +
-        " °C"
-    );
+    return valor.toFixed(2) + " °C";
 }
 
 
 function formatarTempo(segundos) {
-
-    if (
-        !Number.isFinite(segundos) ||
-        segundos < 0
-    ) {
-        segundos = 0;
+    if (!numeroValido(segundos)) {
+        return "0,0 s";
     }
 
-    segundos = Math.floor(segundos);
-
-    const minutos =
-        Math.floor(segundos / 60);
-
-    const segundosRestantes =
-        segundos % 60;
-
-    return (
-        String(minutos).padStart(2, "0") +
-        ":" +
-        String(segundosRestantes).padStart(2, "0")
-    );
+    return segundos.toFixed(1).replace(".", ",") + " s";
 }
 
 
+function atualizarInterface() {
+    if (temperatura1) {
+        temperatura1.textContent =
+            formatarTemperatura(temperaturaAtual);
+    }
+
+    if (quantidadeLeituras) {
+        quantidadeLeituras.textContent =
+            totalLeituras;
+    }
+}
+
+
+// ============================================================
+// STATUS
+// ============================================================
+
 function atualizarStatus(
     texto,
-    conectado = false
+    tipo = "normal"
 ) {
-
     if (statusTexto) {
         statusTexto.textContent = texto;
     }
 
-    if (statusIndicador) {
-        statusIndicador.classList.toggle(
-            "online",
-            conectado
-        );
+    if (!statusIndicador) {
+        return;
     }
 
-    if (statusLive) {
-        statusLive.textContent =
-            conectado ? "LIVE" : "OFFLINE";
-    }
-}
-
-
-// ============================================================
-// ATUALIZAR INTERFACE
-// ============================================================
-
-function atualizarInterface() {
-
-    if (temperaturaElemento) {
-
-        temperaturaElemento.textContent =
-            formatarTemperatura(
-                temperaturaAtual
-            );
-    }
-
-
-    if (quantidadeLeiturasElemento) {
-
-        quantidadeLeiturasElemento.textContent =
-            totalLeituras;
-    }
-
-
-    if (estadoExperimentoElemento) {
-
-        const estados = {
-
-            aguardando1:
-                "Aguardando cápsula 1",
-
-            capsula1:
-                "Cápsula 1 em andamento",
-
-            aguardando2:
-                "Aguardando cápsula 2",
-
-            capsula2:
-                "Cápsula 2 em andamento",
-
-            finalizada:
-                "Experimento finalizado"
-        };
-
-        estadoExperimentoElemento.textContent =
-            estados[etapa] || "";
-    }
-
-
-    if (descricaoControleElemento) {
-
-        const descricoes = {
-
-            aguardando1:
-                "Inicie a cápsula 1 para começar a coleta.",
-
-            capsula1:
-                "A cápsula 1 está sendo monitorada em tempo real.",
-
-            aguardando2:
-                "A cápsula 1 foi encerrada. Insira a cápsula 2 e inicie a medição.",
-
-            capsula2:
-                "A cápsula 2 está sendo monitorada com a mesma duração da cápsula 1.",
-
-            finalizada:
-                "As duas cápsulas foram medidas. Você pode reproduzir o experimento."
-        };
-
-        descricaoControleElemento.textContent =
-            descricoes[etapa] || "";
-    }
-
-
-    // --------------------------------------------------------
-    // BOTÃO CÁPSULA 1
-    // --------------------------------------------------------
-
-    if (iniciarBotao) {
-
-        iniciarBotao.disabled =
-            etapa !== "aguardando1";
-    }
-
-
-    if (pararBotao) {
-
-        pararBotao.disabled =
-            etapa !== "capsula1";
-    }
-
-
-    // --------------------------------------------------------
-    // BOTÃO CÁPSULA 2
-    // --------------------------------------------------------
-
-    if (iniciar2Botao) {
-
-        iniciar2Botao.disabled =
-            etapa !== "aguardando2";
-    }
-
-
-    if (parar2Botao) {
-
-        parar2Botao.disabled =
-            etapa !== "capsula2";
-    }
-
-
-    // --------------------------------------------------------
-    // REPRISE
-    // --------------------------------------------------------
-
-    if (repriseBotao) {
-
-        repriseBotao.disabled =
-            dadosCapsula1.length === 0 ||
-            dadosCapsula2.length === 0;
-    }
-}
-
-
-// ============================================================
-// TEMPO DAS CÁPSULAS
-// ============================================================
-
-function tempoDaCapsula1() {
-
-    if (inicioRealCapsula1 === null) {
-        return 0;
-    }
-
-    if (tempoParadoCapsula1 !== null) {
-        return tempoParadoCapsula1;
-    }
-
-    return (
-        performance.now() -
-        inicioRealCapsula1
+    statusIndicador.classList.remove(
+        "online",
+        "offline",
+        "processando"
     );
+
+    if (tipo === "online") {
+        statusIndicador.classList.add("online");
+    }
+
+    if (tipo === "offline") {
+        statusIndicador.classList.add("offline");
+    }
+
+    if (tipo === "processando") {
+        statusIndicador.classList.add("processando");
+    }
 }
 
 
-function tempoDaCapsula2() {
-
-    if (inicioRealCapsula2 === null) {
-        return 0;
-    }
-
-    if (tempoParadoCapsula2 !== null) {
-        return tempoParadoCapsula2;
-    }
-
-    return (
-        performance.now() -
-        inicioRealCapsula2
-    );
-}
-
-
-// ============================================================
-// RECEBIMENTO DA TEMPERATURA
-// ============================================================
-
-function processarTemperatura(dado) {
-
-    if (!dado) {
+function atualizarEstadoExperimento() {
+    if (!estadoExperimento) {
         return;
     }
 
-
-    let temperatura = null;
-
-
-    if (typeof dado === "number") {
-
-        temperatura = dado;
+    if (etapa === "aguardando1") {
+        estadoExperimento.textContent =
+            "Aguardando início da Cápsula 1";
     }
 
-
-    if (typeof dado === "object") {
-
-        if (
-            typeof dado.temperatura === "number"
-        ) {
-
-            temperatura =
-                dado.temperatura;
-
-        } else if (
-            typeof dado.temperatura === "string"
-        ) {
-
-            temperatura =
-                Number(dado.temperatura);
-        }
+    else if (etapa === "capsula1") {
+        estadoExperimento.textContent =
+            "Cápsula 1 em andamento";
     }
 
-
-    if (!Number.isFinite(temperatura)) {
-        return;
+    else if (etapa === "aguardando2") {
+        estadoExperimento.textContent =
+            "Pronto para iniciar a Cápsula 2";
     }
 
-
-    // ========================================================
-    // IMPORTANTE:
-    // FORA DE UMA CÁPSULA NÃO CONTA LEITURA.
-    // ========================================================
-
-    if (
-        etapa !== "capsula1" &&
-        etapa !== "capsula2"
-    ) {
-        return;
+    else if (etapa === "capsula2") {
+        estadoExperimento.textContent =
+            "Cápsula 2 em andamento";
     }
 
-
-    temperaturaAtual = temperatura;
-
-    // A contagem começa somente quando o botão
-    // "Iniciar" de uma cápsula foi pressionado.
-    totalLeituras++;
-
-
-    atualizarInterface();
-
-
-    // ========================================================
-    // CÁPSULA 1
-    // ========================================================
-
-    if (etapa === "capsula1") {
-
-        const tempo =
-            tempoDaCapsula1();
-
-
-        // Nunca aceitar leitura depois do limite.
-        if (
-            duracaoCapsula1 !== null &&
-            tempo > duracaoCapsula1
-        ) {
-            return;
-        }
-
-
-        dadosCapsula1.push({
-
-            tempo: tempo,
-
-            temperatura: temperatura
-        });
-
-
-        // Atualiza continuamente a temperatura final.
-        temperaturaFinalCapsula1 =
-            temperatura;
-
-
-        desenharGrafico();
-
-        return;
-    }
-
-
-    // ========================================================
-    // CÁPSULA 2
-    // ========================================================
-
-    if (etapa === "capsula2") {
-
-        const tempo =
-            tempoDaCapsula2();
-
-
-        // A cápsula 2 NÃO pode ultrapassar
-        // a duração real da cápsula 1.
-        if (
-            duracaoCapsula1 !== null &&
-            tempo > duracaoCapsula1
-        ) {
-            return;
-        }
-
-
-        dadosCapsula2.push({
-
-            tempo: tempo,
-
-            temperatura: temperatura
-        });
-
-
-        // Atualiza continuamente a temperatura final.
-        temperaturaFinalCapsula2 =
-            temperatura;
-
-
-        desenharGrafico();
-
-        return;
+    else if (etapa === "finalizado") {
+        estadoExperimento.textContent =
+            "Experimento finalizado";
     }
 }
 
@@ -526,52 +225,22 @@ function processarTemperatura(dado) {
 
 function conectarWebSocket() {
 
-    if (
-        ws &&
-        (
-            ws.readyState === WebSocket.OPEN ||
-            ws.readyState === WebSocket.CONNECTING
-        )
-    ) {
-        return;
+    if (ws) {
+        try {
+            ws.close();
+        } catch (erro) {
+            console.error(erro);
+        }
     }
-
-
-    console.log(
-        "Conectando ao:",
-        enderecoWebSocket
-    );
-
 
     atualizarStatus(
-        "Conectando...",
-        false
+        "Conectando ao sistema...",
+        "processando"
     );
 
-
-    try {
-
-        ws =
-            new WebSocket(
-                enderecoWebSocket
-            );
-
-    } catch (erro) {
-
-        console.error(
-            "Erro ao criar WebSocket:",
-            erro
-        );
-
-        atualizarStatus(
-            "Erro na conexão",
-            false
-        );
-
-        programarReconexao();
-
-        return;
-    }
+    ws = new WebSocket(
+        ENDERECO_WEBSOCKET
+    );
 
 
     ws.onopen = function () {
@@ -581,9 +250,14 @@ function conectarWebSocket() {
         );
 
         atualizarStatus(
-            "Conectado ao sistema",
-            true
+            "Sistema conectado",
+            "online"
         );
+
+        if (statusLive) {
+            statusLive.textContent =
+                "LIVE";
+        }
     };
 
 
@@ -594,25 +268,9 @@ function conectarWebSocket() {
             evento.data
         );
 
-
-        try {
-
-            const dado =
-                JSON.parse(
-                    evento.data
-                );
-
-            processarTemperatura(
-                dado
-            );
-
-        } catch (erro) {
-
-            console.error(
-                "Erro ao interpretar dados recebidos:",
-                erro
-            );
-        }
+        processarTemperatura(
+            evento.data
+        );
     };
 
 
@@ -625,46 +283,190 @@ function conectarWebSocket() {
 
         atualizarStatus(
             "Erro na conexão",
-            false
+            "offline"
         );
     };
 
 
     ws.onclose = function () {
 
-        console.warn(
+        console.log(
             "WebSocket desconectado."
         );
 
         atualizarStatus(
-            "Desconectado",
-            false
+            "Reconectando...",
+            "offline"
         );
 
-        programarReconexao();
+        if (statusLive) {
+            statusLive.textContent =
+                "OFFLINE";
+        }
+
+        if (!reconexaoTimer) {
+
+            reconexaoTimer =
+                setTimeout(
+                    function () {
+
+                        reconexaoTimer =
+                            null;
+
+                        conectarWebSocket();
+
+                    },
+                    3000
+                );
+        }
     };
 }
 
 
 // ============================================================
-// RECONEXÃO
+// PROCESSAMENTO DA TEMPERATURA
 // ============================================================
 
-function programarReconexao() {
+function processarTemperatura(mensagem) {
 
-    if (reconexaoTimer !== null) {
+    let dados;
+
+    try {
+        dados = JSON.parse(mensagem);
+    }
+
+    catch (erro) {
+
+        console.error(
+            "Mensagem inválida:",
+            mensagem
+        );
+
         return;
     }
 
 
-    reconexaoTimer =
-        setTimeout(function () {
+    const temperatura =
+        Number(dados.temperatura);
 
-            reconexaoTimer = null;
 
-            conectarWebSocket();
+    if (!Number.isFinite(temperatura)) {
+        return;
+    }
 
-        }, 2000);
+
+    temperaturaAtual =
+        temperatura;
+
+
+    atualizarInterface();
+
+
+    // --------------------------------------------------------
+    // Só registra dados depois que o botão "Iniciar" foi
+    // pressionado.
+    // --------------------------------------------------------
+
+    if (
+        etapa !== "capsula1" &&
+        etapa !== "capsula2"
+    ) {
+        return;
+    }
+
+
+    let inicioAtual;
+
+    let dadosAtual;
+
+
+    if (etapa === "capsula1") {
+
+        inicioAtual =
+            inicioRealCapsula1;
+
+        dadosAtual =
+            dadosCapsula1;
+    }
+
+    else {
+
+        inicioAtual =
+            inicioRealCapsula2;
+
+        dadosAtual =
+            dadosCapsula2;
+    }
+
+
+    if (inicioAtual === null) {
+        return;
+    }
+
+
+    const agora =
+        performance.now();
+
+
+    const tempo =
+        (agora - inicioAtual) / 1000;
+
+
+    // --------------------------------------------------------
+    // Limite da duração
+    // --------------------------------------------------------
+
+    let duracaoLimite = null;
+
+    if (etapa === "capsula1") {
+
+        // Enquanto a cápsula 1 está ativa,
+        // não há limite automático.
+        duracaoLimite = null;
+    }
+
+    else if (etapa === "capsula2") {
+
+        duracaoLimite =
+            duracaoCapsula2;
+    }
+
+
+    if (
+        duracaoLimite !== null &&
+        tempo > duracaoLimite
+    ) {
+        return;
+    }
+
+
+    const ponto = {
+        tempo: tempo,
+        temperatura: temperatura
+    };
+
+
+    dadosAtual.push(ponto);
+
+
+    // --------------------------------------------------------
+    // A contagem começa na cápsula 1 e continua acumulada
+    // na cápsula 2.
+    // --------------------------------------------------------
+
+    totalLeituras++;
+
+
+    atualizarInterface();
+
+
+    if (tempoAtual) {
+        tempoAtual.textContent =
+            formatarTempo(tempo);
+    }
+
+
+    desenharGrafico();
 }
 
 
@@ -674,46 +476,92 @@ function programarReconexao() {
 
 function iniciarCapsula1() {
 
-    if (etapa !== "aguardando1") {
+    if (
+        etapa !== "aguardando1" &&
+        etapa !== "finalizado"
+    ) {
         return;
     }
 
 
+    // Cancela qualquer reprise anterior
     pararReprise();
 
 
     dadosCapsula1 = [];
-
-    temperaturaFinalCapsula1 = null;
-
-
-    // --------------------------------------------------------
-    // A CONTAGEM COMEÇA EXATAMENTE AQUI.
-    // --------------------------------------------------------
-
-    totalLeituras = 0;
-
+    dadosCapsula2 = [];
 
     inicioRealCapsula1 =
         performance.now();
 
+    inicioRealCapsula2 =
+        null;
 
-    tempoParadoCapsula1 = null;
+    duracaoCapsula1 =
+        null;
 
-    duracaoCapsula1 = null;
+    duracaoCapsula2 =
+        null;
+
+    tempoParadoCapsula1 =
+        null;
+
+    tempoParadoCapsula2 =
+        null;
+
+    temperaturaFinalCapsula1 =
+        null;
+
+    temperaturaFinalCapsula2 =
+        null;
+
+
+    // A contagem começa exatamente aqui.
+    totalLeituras = 0;
 
 
     etapa = "capsula1";
 
 
+    if (botaoIniciar) {
+        botaoIniciar.disabled = true;
+    }
+
+    if (botaoParar) {
+        botaoParar.disabled = false;
+    }
+
+    if (botaoIniciar2) {
+        botaoIniciar2.disabled = true;
+    }
+
+    if (botaoParar2) {
+        botaoParar2.disabled = true;
+    }
+
+    if (botaoReprise) {
+        botaoReprise.disabled = true;
+    }
+
+
+    atualizarStatus(
+        "Cápsula 1 em andamento",
+        "online"
+    );
+
+    atualizarEstadoExperimento();
+
+
+    if (descricaoControle) {
+        descricaoControle.textContent =
+            "A cápsula 1 está sendo monitorada. " +
+            "Pressione “Parar” quando a etapa terminar.";
+    }
+
+
     atualizarInterface();
 
     desenharGrafico();
-
-
-    console.log(
-        "Cápsula 1 iniciada."
-    );
 }
 
 
@@ -728,80 +576,71 @@ function pararCapsula1() {
     }
 
 
-    tempoParadoCapsula1 =
-        performance.now() -
-        inicioRealCapsula1;
+    const agora =
+        performance.now();
 
 
     duracaoCapsula1 =
-        tempoParadoCapsula1;
+        (agora - inicioRealCapsula1) / 1000;
 
 
-    if (
-        !Number.isFinite(
-            duracaoCapsula1
-        ) ||
-        duracaoCapsula1 < 0
-    ) {
-
-        duracaoCapsula1 = 0;
-    }
+    tempoParadoCapsula1 =
+        agora;
 
 
     // --------------------------------------------------------
-    // REMOVER LEITURAS FORA DO LIMITE
+    // Guarda a última temperatura válida dentro do limite.
     // --------------------------------------------------------
 
-    dadosCapsula1 =
-        dadosCapsula1.filter(
-            ponto =>
-                ponto.tempo <=
-                duracaoCapsula1
-        );
-
-
-    // Atualizar temperatura final novamente
-    // após a filtragem.
     if (dadosCapsula1.length > 0) {
 
-        temperaturaFinalCapsula1 =
+        const ultimo =
             dadosCapsula1[
                 dadosCapsula1.length - 1
-            ].temperatura;
+            ];
 
-    } else {
-
-        temperaturaFinalCapsula1 = null;
+        temperaturaFinalCapsula1 =
+            ultimo.temperatura;
     }
 
 
     etapa = "aguardando2";
 
 
-    atualizarInterface();
+    if (botaoIniciar) {
+        botaoIniciar.disabled = true;
+    }
+
+    if (botaoParar) {
+        botaoParar.disabled = true;
+    }
+
+    if (botaoIniciar2) {
+        botaoIniciar2.disabled = false;
+    }
+
+    if (botaoParar2) {
+        botaoParar2.disabled = true;
+    }
+
+
+    atualizarStatus(
+        "Cápsula 1 finalizada",
+        "online"
+    );
+
+    atualizarEstadoExperimento();
+
+
+    if (descricaoControle) {
+        descricaoControle.textContent =
+            "Cápsula 1 concluída em " +
+            formatarTempo(duracaoCapsula1) +
+            ". A Cápsula 2 usará exatamente esta duração.";
+    }
+
 
     desenharGrafico();
-
-
-    console.log(
-        "Cápsula 1 parada."
-    );
-
-    console.log(
-        "Duração:",
-        duracaoCapsula1,
-        "ms"
-    );
-
-    console.log(
-        "Leituras:",
-        dadosCapsula1.length
-    );
-
-    console.log(
-        "Temperatura final:",
-        temperaturaFinalCapsula1
-    );
 }
 
 
@@ -818,140 +657,95 @@ function iniciarCapsula2() {
 
     if (
         duracaoCapsula1 === null ||
-        !Number.isFinite(
-            duracaoCapsula1
-        )
+        duracaoCapsula1 <= 0
     ) {
-
-        console.error(
-            "Duração da cápsula 1 não encontrada."
-        );
-
         return;
     }
 
 
-    pararReprise();
-
-
     dadosCapsula2 = [];
 
-    temperaturaFinalCapsula2 = null;
-
 
     // --------------------------------------------------------
-    // A CONTAGEM DA CÁPSULA 2 COMEÇA AQUI.
-    //
-    // Ela continua a contagem total da sessão.
+    // IMPORTANTE:
+    // A cápsula 2 começa no próprio zero.
     // --------------------------------------------------------
 
-    totalLeituras = 0;
-
-
-    // O tempo da cápsula 2 começa novamente em ZERO.
     inicioRealCapsula2 =
         performance.now();
 
 
-    tempoParadoCapsula2 = null;
-
-
-    // EXATAMENTE a mesma duração da cápsula 1.
+    // Exatamente a mesma duração da cápsula 1.
     duracaoCapsula2 =
         duracaoCapsula1;
+
+
+    tempoParadoCapsula2 =
+        null;
+
+    temperaturaFinalCapsula2 =
+        null;
 
 
     etapa = "capsula2";
 
 
-    atualizarInterface();
+    if (botaoIniciar2) {
+        botaoIniciar2.disabled = true;
+    }
+
+    if (botaoParar2) {
+        botaoParar2.disabled = false;
+    }
+
+    if (botaoReprise) {
+        botaoReprise.disabled = true;
+    }
+
+
+    atualizarStatus(
+        "Cápsula 2 em andamento",
+        "online"
+    );
+
+    atualizarEstadoExperimento();
+
+
+    if (descricaoControle) {
+        descricaoControle.textContent =
+            "Cápsula 2 iniciada. " +
+            "Ela será encerrada automaticamente após " +
+            formatarTempo(duracaoCapsula2) +
+            ".";
+    }
+
 
     desenharGrafico();
-
-
-    console.log(
-        "Cápsula 2 iniciada."
-    );
-
-    console.log(
-        "Duração:",
-        duracaoCapsula2,
-        "ms"
-    );
 
 
     // --------------------------------------------------------
     // PARADA AUTOMÁTICA
     // --------------------------------------------------------
 
+    if (temporizadorCapsula2) {
+        clearTimeout(temporizadorCapsula2);
+    }
+
+
     temporizadorCapsula2 =
         setTimeout(
-            finalizarCapsula2Automaticamente,
-            duracaoCapsula2
+            function () {
+
+                pararCapsula2();
+
+            },
+            duracaoCapsula2 * 1000
         );
 }
 
 
 // ============================================================
-// FINALIZAR CÁPSULA 2 AUTOMATICAMENTE
-// ============================================================
-
-function finalizarCapsula2Automaticamente() {
-
-    if (etapa !== "capsula2") {
-        return;
-    }
-
-
-    tempoParadoCapsula2 =
-        duracaoCapsula2;
-
-
-    dadosCapsula2 =
-        dadosCapsula2.filter(
-            ponto =>
-                ponto.tempo <=
-                duracaoCapsula2
-        );
-
-
-    if (dadosCapsula2.length > 0) {
-
-        temperaturaFinalCapsula2 =
-            dadosCapsula2[
-                dadosCapsula2.length - 1
-            ].temperatura;
-
-    } else {
-
-        temperaturaFinalCapsula2 = null;
-    }
-
-
-    etapa = "finalizada";
-
-
-    temporizadorCapsula2 = null;
-
-
-    atualizarInterface();
-
-    desenharGrafico();
-
-
-    console.log(
-        "Cápsula 2 finalizada automaticamente."
-    );
-
-    console.log(
-        "Temperatura final:",
-        temperaturaFinalCapsula2
-    );
-}
-
-
-// ============================================================
-// PARAR CÁPSULA 2 MANUALMENTE
+// PARAR CÁPSULA 2
 // ============================================================
 
 function pararCapsula2() {
@@ -961,142 +755,1022 @@ function pararCapsula2() {
     }
 
 
-    if (temporizadorCapsula2 !== null) {
+    if (temporizadorCapsula2) {
 
         clearTimeout(
             temporizadorCapsula2
         );
 
-        temporizadorCapsula2 = null;
+        temporizadorCapsula2 =
+            null;
     }
 
 
-    tempoParadoCapsula2 =
-        performance.now() -
-        inicioRealCapsula2;
+    const agora =
+        performance.now();
 
 
-    // Nunca ultrapassar a duração da cápsula 1.
+    const tempoDecorrido =
+        (agora - inicioRealCapsula2) / 1000;
+
+
     tempoParadoCapsula2 =
+        agora;
+
+
+    // --------------------------------------------------------
+    // Nunca deixa a duração passar da duração da cápsula 1.
+    // --------------------------------------------------------
+
+    duracaoCapsula2 =
         Math.min(
-            tempoParadoCapsula2,
+            tempoDecorrido,
             duracaoCapsula1
         );
 
 
+    // --------------------------------------------------------
+    // Remove qualquer leitura que tenha passado do limite.
+    // --------------------------------------------------------
+
     dadosCapsula2 =
         dadosCapsula2.filter(
-            ponto =>
-                ponto.tempo <=
-                tempoParadoCapsula2
+            function (ponto) {
+                return ponto.tempo <= duracaoCapsula2;
+            }
         );
 
+
+    // --------------------------------------------------------
+    // Temperatura final
+    // --------------------------------------------------------
 
     if (dadosCapsula2.length > 0) {
 
-        temperaturaFinalCapsula2 =
+        const ultimo =
             dadosCapsula2[
                 dadosCapsula2.length - 1
-            ].temperatura;
+            ];
 
-    } else {
-
-        temperaturaFinalCapsula2 = null;
+        temperaturaFinalCapsula2 =
+            ultimo.temperatura;
     }
 
 
-    etapa = "finalizada";
+    etapa = "finalizado";
 
 
-    atualizarInterface();
+    if (botaoIniciar2) {
+        botaoIniciar2.disabled = true;
+    }
+
+    if (botaoParar2) {
+        botaoParar2.disabled = true;
+    }
+
+    if (botaoReprise) {
+        botaoReprise.disabled = false;
+    }
+
+
+    atualizarStatus(
+        "Experimento finalizado",
+        "online"
+    );
+
+    atualizarEstadoExperimento();
+
+
+    if (descricaoControle) {
+        descricaoControle.textContent =
+            "As duas cápsulas foram concluídas. " +
+            "Você pode iniciar a reprise para visualizar " +
+            "a evolução das temperaturas.";
+    }
+
 
     desenharGrafico();
 
-
-    console.log(
-        "Cápsula 2 parada manualmente."
-    );
-
-    console.log(
-        "Temperatura final:",
-        temperaturaFinalCapsula2
-    );
+    mostrarTemperaturasFinais();
 }
 
 
 // ============================================================
-// NOVA SESSÃO
+// GRÁFICO
 // ============================================================
 
-function novaSessao() {
+function prepararCanvas() {
 
-    pararReprise();
+    if (!canvas || !ctx) {
+        return null;
+    }
 
 
-    if (temporizadorCapsula2 !== null) {
+    const larguraCSS =
+        canvas.clientWidth;
 
-        clearTimeout(
-            temporizadorCapsula2
+    const alturaCSS =
+        canvas.clientHeight;
+
+
+    if (
+        larguraCSS <= 0 ||
+        alturaCSS <= 0
+    ) {
+        return null;
+    }
+
+
+    const dpr =
+        window.devicePixelRatio || 1;
+
+
+    canvas.width =
+        Math.round(
+            larguraCSS * dpr
         );
 
-        temporizadorCapsula2 = null;
+    canvas.height =
+        Math.round(
+            alturaCSS * dpr
+        );
+
+
+    ctx.setTransform(
+        dpr,
+        0,
+        0,
+        dpr,
+        0,
+        0
+    );
+
+
+    return {
+        largura: larguraCSS,
+        altura: alturaCSS
+    };
+}
+
+
+// ============================================================
+// OBTÉM DADOS PARA O EIXO Y
+// ============================================================
+
+function obterTemperaturasValidas() {
+
+    const temperaturas = [];
+
+
+    for (const ponto of dadosCapsula1) {
+
+        if (
+            numeroValido(ponto.temperatura)
+        ) {
+            temperaturas.push(
+                ponto.temperatura
+            );
+        }
     }
 
 
-    etapa = "aguardando1";
+    for (const ponto of dadosCapsula2) {
 
-
-    dadosCapsula1 = [];
-    dadosCapsula2 = [];
-
-
-    inicioRealCapsula1 = null;
-    inicioRealCapsula2 = null;
-
-
-    duracaoCapsula1 = null;
-    duracaoCapsula2 = null;
-
-
-    tempoParadoCapsula1 = null;
-    tempoParadoCapsula2 = null;
-
-
-    temperaturaAtual = null;
-
-    temperaturaFinalCapsula1 = null;
-    temperaturaFinalCapsula2 = null;
-
-
-    totalLeituras = 0;
-
-
-    if (tempoElemento) {
-
-        tempoElemento.textContent =
-            "00:00";
+        if (
+            numeroValido(ponto.temperatura)
+        ) {
+            temperaturas.push(
+                ponto.temperatura
+            );
+        }
     }
 
 
-    atualizarInterface();
+    return temperaturas;
+}
 
-    desenharGrafico();
+
+// ============================================================
+// CALCULA ESCALA Y COM ZOOM AUTOMÁTICO
+// ============================================================
+
+function calcularEscalaY() {
+
+    const temperaturas =
+        obterTemperaturasValidas();
 
 
-    console.log(
-        "Nova sessão iniciada."
+    // Sem dados
+    if (temperaturas.length === 0) {
+
+        return {
+            minimo: 20,
+            maximo: 30,
+            passo: 2
+        };
+    }
+
+
+    let minimo =
+        Math.min(...temperaturas);
+
+    let maximo =
+        Math.max(...temperaturas);
+
+
+    let variacao =
+        maximo - minimo;
+
+
+    // --------------------------------------------------------
+    // CASO 1:
+    // praticamente nenhuma variação.
+    //
+    // Cria uma faixa pequena em torno da temperatura.
+    // --------------------------------------------------------
+
+    if (variacao < 0.1) {
+
+        const centro =
+            (minimo + maximo) / 2;
+
+        minimo =
+            centro - 0.5;
+
+        maximo =
+            centro + 0.5;
+
+        variacao =
+            maximo - minimo;
+    }
+
+
+    // --------------------------------------------------------
+    // CASO 2:
+    // variação pequena.
+    //
+    // O gráfico recebe pouco espaço extra.
+    // Isso cria o efeito de "zoom".
+    // --------------------------------------------------------
+
+    else if (variacao < 1) {
+
+        const margem =
+            Math.max(
+                variacao * 0.30,
+                0.15
+            );
+
+        minimo -= margem;
+        maximo += margem;
+    }
+
+
+    // --------------------------------------------------------
+    // CASO 3:
+    // variação moderada.
+    // --------------------------------------------------------
+
+    else if (variacao < 3) {
+
+        const margem =
+            variacao * 0.20;
+
+        minimo -= margem;
+        maximo += margem;
+    }
+
+
+    // --------------------------------------------------------
+    // CASO 4:
+    // variação maior.
+    // --------------------------------------------------------
+
+    else {
+
+        const margem =
+            variacao * 0.10;
+
+        minimo -= margem;
+        maximo += margem;
+    }
+
+
+    const novaVariacao =
+        maximo - minimo;
+
+
+    // --------------------------------------------------------
+    // Escolha do passo do eixo Y.
+    // --------------------------------------------------------
+
+    let passo;
+
+
+    if (novaVariacao <= 1) {
+        passo = 0.2;
+    }
+
+    else if (novaVariacao <= 2) {
+        passo = 0.5;
+    }
+
+    else if (novaVariacao <= 5) {
+        passo = 1;
+    }
+
+    else if (novaVariacao <= 10) {
+        passo = 2;
+    }
+
+    else {
+        passo = 5;
+    }
+
+
+    return {
+        minimo: minimo,
+        maximo: maximo,
+        passo: passo
+    };
+}
+
+
+// ============================================================
+// FORMATAÇÃO DO EIXO Y
+// ============================================================
+
+function formatarEixoY(valor) {
+
+    if (
+        Math.abs(valor) < 0.0001
+    ) {
+        valor = 0;
+    }
+
+
+    return valor
+        .toFixed(1)
+        .replace(".", ",") + "°";
+}
+
+
+// ============================================================
+// DESENHA EIXOS
+// ============================================================
+
+function desenharEixos(
+    largura,
+    altura,
+    margem,
+    tempoMaximo,
+    escalaY
+) {
+
+    ctx.strokeStyle =
+        "#d9dee5";
+
+    ctx.lineWidth = 1;
+
+
+    ctx.fillStyle =
+        "#667085";
+
+    ctx.font =
+        "13px Arial";
+
+    ctx.textAlign =
+        "right";
+
+    ctx.textBaseline =
+        "middle";
+
+
+    // --------------------------------------------------------
+    // Linhas horizontais + valores Y
+    // --------------------------------------------------------
+
+    const quantidadeLinhas =
+        Math.max(
+            2,
+            Math.round(
+                (
+                    escalaY.maximo -
+                    escalaY.minimo
+                ) /
+                escalaY.passo
+            )
+        );
+
+
+    for (
+        let i = 0;
+        i <= quantidadeLinhas;
+        i++
+    ) {
+
+        const proporcao =
+            i / quantidadeLinhas;
+
+
+        const y =
+            margem.superior +
+            proporcao *
+            (altura - margem.superior - margem.inferior);
+
+
+        const valor =
+            escalaY.maximo -
+            proporcao *
+            (
+                escalaY.maximo -
+                escalaY.minimo
+            );
+
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            margem.esquerda,
+            y
+        );
+
+        ctx.lineTo(
+            largura - margem.direita,
+            y
+        );
+
+        ctx.stroke();
+
+
+        ctx.fillText(
+            formatarEixoY(valor),
+            margem.esquerda - 10,
+            y
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // Eixo X
+    // --------------------------------------------------------
+
+    ctx.textAlign =
+        "center";
+
+    ctx.textBaseline =
+        "top";
+
+
+    const quantidadeTempos =
+        Math.min(
+            6,
+            Math.max(
+                2,
+                Math.ceil(
+                    tempoMaximo / 10
+                ) + 1
+            )
+        );
+
+
+    for (
+        let i = 0;
+        i <= quantidadeTempos;
+        i++
+    ) {
+
+        const proporcao =
+            i / quantidadeTempos;
+
+
+        const x =
+            margem.esquerda +
+            proporcao *
+            (
+                largura -
+                margem.esquerda -
+                margem.direita
+            );
+
+
+        const segundos =
+            proporcao *
+            tempoMaximo;
+
+
+        ctx.fillText(
+            segundos
+                .toFixed(1)
+                .replace(".", ",") + " s",
+            x,
+            altura - margem.inferior + 12
+        );
+    }
+
+
+    // Título Y
+    ctx.save();
+
+    ctx.translate(
+        18,
+        altura / 2
+    );
+
+    ctx.rotate(
+        -Math.PI / 2
+    );
+
+    ctx.textAlign =
+        "center";
+
+    ctx.textBaseline =
+        "middle";
+
+    ctx.font =
+        "13px Arial";
+
+    ctx.fillStyle =
+        "#667085";
+
+    ctx.fillText(
+        "Temperatura (°C)",
+        0,
+        0
+    );
+
+    ctx.restore();
+
+
+    // Título X
+
+    ctx.textAlign =
+        "center";
+
+    ctx.textBaseline =
+        "bottom";
+
+    ctx.fillText(
+        "Tempo",
+        largura / 2,
+        altura - 4
     );
 }
 
 
 // ============================================================
-// INICIAR REPRISE
+// DESENHA LINHA CURVA
+// ============================================================
+
+function desenharLinha(
+    dados,
+    margem,
+    graficoLargura,
+    graficoAltura,
+    tempoMaximo,
+    temperaturaMinima,
+    temperaturaMaxima,
+    cor
+) {
+
+    if (
+        !dados ||
+        dados.length === 0
+    ) {
+        return;
+    }
+
+
+    const pontos = [];
+
+
+    for (const ponto of dados) {
+
+        if (
+            !numeroValido(ponto.tempo) ||
+            !numeroValido(ponto.temperatura)
+        ) {
+            continue;
+        }
+
+
+        if (
+            ponto.tempo < 0 ||
+            ponto.tempo > tempoMaximo
+        ) {
+            continue;
+        }
+
+
+        const proporcaoX =
+            tempoMaximo > 0
+                ? ponto.tempo / tempoMaximo
+                : 0;
+
+
+        const proporcaoY =
+            (
+                ponto.temperatura -
+                temperaturaMinima
+            ) /
+            (
+                temperaturaMaxima -
+                temperaturaMinima
+            );
+
+
+        const x =
+            margem.esquerda +
+            proporcaoX *
+            graficoLargura;
+
+
+        const y =
+            margem.superior +
+            graficoAltura -
+            proporcaoY *
+            graficoAltura;
+
+
+        pontos.push({
+            x: x,
+            y: y
+        });
+    }
+
+
+    if (pontos.length === 0) {
+        return;
+    }
+
+
+    ctx.strokeStyle =
+        cor;
+
+    ctx.lineWidth =
+        3;
+
+    ctx.lineJoin =
+        "round";
+
+    ctx.lineCap =
+        "round";
+
+
+    ctx.beginPath();
+
+
+    ctx.moveTo(
+        pontos[0].x,
+        pontos[0].y
+    );
+
+
+    // --------------------------------------------------------
+    // Dois pontos: linha simples
+    // --------------------------------------------------------
+
+    if (pontos.length === 2) {
+
+        ctx.lineTo(
+            pontos[1].x,
+            pontos[1].y
+        );
+    }
+
+
+    // --------------------------------------------------------
+    // Três ou mais pontos:
+    // curvas Bézier suaves
+    // --------------------------------------------------------
+
+    else {
+
+        for (
+            let i = 0;
+            i < pontos.length - 1;
+            i++
+        ) {
+
+            const atual =
+                pontos[i];
+
+            const proximo =
+                pontos[i + 1];
+
+            const anterior =
+                pontos[i - 1] || atual;
+
+            const seguinte =
+                pontos[i + 2] || proximo;
+
+
+            const distanciaX =
+                (
+                    proximo.x -
+                    atual.x
+                ) * 0.35;
+
+
+            const controle1 = {
+                x:
+                    atual.x +
+                    distanciaX,
+
+                y:
+                    atual.y +
+                    (
+                        (
+                            proximo.y -
+                            anterior.y
+                        ) * 0.15
+                    )
+            };
+
+
+            const controle2 = {
+                x:
+                    proximo.x -
+                    distanciaX,
+
+                y:
+                    proximo.y -
+                    (
+                        (
+                            seguinte.y -
+                            atual.y
+                        ) * 0.15
+                    )
+            };
+
+
+            ctx.bezierCurveTo(
+                controle1.x,
+                controle1.y,
+                controle2.x,
+                controle2.y,
+                proximo.x,
+                proximo.y
+            );
+        }
+    }
+
+
+    ctx.stroke();
+}
+
+
+// ============================================================
+// DESENHAR GRÁFICO
+// ============================================================
+
+function desenharGrafico() {
+
+    if (!canvas || !ctx) {
+        return;
+    }
+
+
+    const dimensoes =
+        prepararCanvas();
+
+
+    if (!dimensoes) {
+        return;
+    }
+
+
+    const largura =
+        dimensoes.largura;
+
+    const altura =
+        dimensoes.altura;
+
+
+    ctx.clearRect(
+        0,
+        0,
+        largura,
+        altura
+    );
+
+
+    const margem = {
+        esquerda: 65,
+        direita: 25,
+        superior: 25,
+        inferior: 55
+    };
+
+
+    const graficoLargura =
+        largura -
+        margem.esquerda -
+        margem.direita;
+
+
+    const graficoAltura =
+        altura -
+        margem.superior -
+        margem.inferior;
+
+
+    // --------------------------------------------------------
+    // Descobre o maior tempo que deve aparecer.
+    // --------------------------------------------------------
+
+    let tempoMaximo = 10;
+
+
+    if (
+        duracaoCapsula1 !== null &&
+        duracaoCapsula1 > 0
+    ) {
+        tempoMaximo =
+            duracaoCapsula1;
+    }
+
+
+    if (
+        etapa === "capsula1" &&
+        inicioRealCapsula1 !== null
+    ) {
+
+        const tempoAtualCapsula1 =
+            (
+                performance.now() -
+                inicioRealCapsula1
+            ) / 1000;
+
+
+        tempoMaximo =
+            Math.max(
+                1,
+                tempoAtualCapsula1
+            );
+    }
+
+
+    // --------------------------------------------------------
+    // Escala Y com zoom automático
+    // --------------------------------------------------------
+
+    const escalaY =
+        calcularEscalaY();
+
+
+    desenharEixos(
+        largura,
+        altura,
+        margem,
+        tempoMaximo,
+        escalaY
+    );
+
+
+    // --------------------------------------------------------
+    // Linha da cápsula 1
+    // --------------------------------------------------------
+
+    desenharLinha(
+        dadosCapsula1,
+        margem,
+        graficoLargura,
+        graficoAltura,
+        tempoMaximo,
+        escalaY.minimo,
+        escalaY.maximo,
+        COR_CAPSULA_1
+    );
+
+
+    // --------------------------------------------------------
+    // Linha da cápsula 2
+    // --------------------------------------------------------
+
+    desenharLinha(
+        dadosCapsula2,
+        margem,
+        graficoLargura,
+        graficoAltura,
+        tempoMaximo,
+        escalaY.minimo,
+        escalaY.maximo,
+        COR_CAPSULA_2
+    );
+}
+
+
+// ============================================================
+// ATUALIZAÇÃO CONTÍNUA DURANTE O EXPERIMENTO
+// ============================================================
+
+function loopGrafico() {
+
+    if (
+        etapa === "capsula1" ||
+        etapa === "capsula2"
+    ) {
+        desenharGrafico();
+    }
+
+
+    requestAnimationFrame(
+        loopGrafico
+    );
+}
+
+
+// ============================================================
+// RESULTADO FINAL
+// ============================================================
+
+function mostrarTemperaturasFinais() {
+
+    let resultado =
+        document.getElementById(
+            "resultadoFinal"
+        );
+
+
+    if (!resultado) {
+
+        resultado =
+            document.createElement("div");
+
+        resultado.id =
+            "resultadoFinal";
+
+        resultado.className =
+            "resultado-final";
+
+
+        const graficoArea =
+            document.getElementById(
+                "graficoArea"
+            );
+
+
+        if (graficoArea) {
+
+            graficoArea.insertAdjacentElement(
+                "afterend",
+                resultado
+            );
+        }
+
+        else {
+
+            document.body.appendChild(
+                resultado
+            );
+        }
+    }
+
+
+    resultado.innerHTML = `
+        <div class="resultado-final-titulo">
+            Resultado final
+        </div>
+
+        <div class="resultado-final-grid">
+
+            <div class="resultado-final-item">
+                <span>Cápsula 1</span>
+                <strong>
+                    ${
+                        formatarTemperatura(
+                            temperaturaFinalCapsula1
+                        )
+                    }
+                </strong>
+            </div>
+
+            <div class="resultado-final-item">
+                <span>Cápsula 2</span>
+                <strong>
+                    ${
+                        formatarTemperatura(
+                            temperaturaFinalCapsula2
+                        )
+                    }
+                </strong>
+            </div>
+
+        </div>
+    `;
+}
+
+
+// ============================================================
+// REPRISE
 // ============================================================
 
 function iniciarReprise() {
 
     if (
-        dadosCapsula1.length === 0 ||
+        etapa !== "finalizado" ||
+        dadosCapsula1.length === 0 &&
         dadosCapsula2.length === 0
     ) {
         return;
@@ -1108,94 +1782,253 @@ function iniciarReprise() {
 
     emReprise = true;
 
+
     repriseInicio =
         performance.now();
 
 
-    const fimCapsula1 =
-        dadosCapsula1.length > 0
-            ? dadosCapsula1[
-                dadosCapsula1.length - 1
-            ].tempo
-            : 0;
-
-
-    const fimCapsula2 =
-        dadosCapsula2.length > 0
-            ? dadosCapsula2[
-                dadosCapsula2.length - 1
-            ].tempo
-            : 0;
-
-
     repriseDuracaoTotal =
-        Math.max(
-            fimCapsula1,
-            fimCapsula2
-        );
+        duracaoCapsula1 || 0;
 
 
-    desenharGraficoReprise(0);
+    if (
+        repriseDuracaoTotal <= 0
+    ) {
+        return;
+    }
 
 
-    repriseAnimacao =
-        requestAnimationFrame(
-            atualizarReprise
-        );
+    if (botaoReprise) {
+        botaoReprise.disabled = true;
+    }
+
+
+    if (botaoNovaSessao) {
+        botaoNovaSessao.disabled = true;
+    }
+
+
+    atualizarStatus(
+        "Reprise em andamento",
+        "processando"
+    );
+
+
+    if (descricaoControle) {
+        descricaoControle.textContent =
+            "Reprise: o experimento está sendo " +
+            "reproduzido desde o início.";
+    }
+
+
+    executarReprise();
 }
 
 
 // ============================================================
-// ATUALIZAR REPRISE
+// EXECUTA ANIMAÇÃO DA REPRISE
 // ============================================================
 
-function atualizarReprise() {
+function executarReprise() {
 
     if (!emReprise) {
         return;
     }
 
 
+    const agora =
+        performance.now();
+
+
     const tempoDecorrido =
-        performance.now() -
-        repriseInicio;
+        (
+            agora -
+            repriseInicio
+        ) / 1000;
 
 
-    if (
-        tempoDecorrido >=
-        repriseDuracaoTotal
-    ) {
-
-        desenharGraficoReprise(
+    const progresso =
+        Math.min(
+            1,
+            tempoDecorrido /
             repriseDuracaoTotal
         );
 
+
+    const tempoAtualReprise =
+        progresso *
+        repriseDuracaoTotal;
+
+
+    desenharGraficoReprise(
+        tempoAtualReprise
+    );
+
+
+    if (
+        progresso >= 1
+    ) {
 
         emReprise = false;
 
         repriseAnimacao = null;
 
 
-        // ----------------------------------------------------
-        // MOSTRAR TEMPERATURAS FINAIS
-        // ----------------------------------------------------
+        atualizarStatus(
+            "Reprise concluída",
+            "online"
+        );
+
+
+        if (descricaoControle) {
+            descricaoControle.textContent =
+                "Reprise concluída.";
+        }
+
+
+        if (botaoReprise) {
+            botaoReprise.disabled = false;
+        }
+
+
+        if (botaoNovaSessao) {
+            botaoNovaSessao.disabled = false;
+        }
+
 
         mostrarTemperaturasFinais();
-
 
         return;
     }
 
 
-    desenharGraficoReprise(
-        tempoDecorrido
+    repriseAnimacao =
+        requestAnimationFrame(
+            executarReprise
+        );
+}
+
+
+// ============================================================
+// DESENHA GRÁFICO DA REPRISE
+// ============================================================
+
+function desenharGraficoReprise(
+    tempoAtualReprise
+) {
+
+    if (!canvas || !ctx) {
+        return;
+    }
+
+
+    const dimensoes =
+        prepararCanvas();
+
+
+    if (!dimensoes) {
+        return;
+    }
+
+
+    const largura =
+        dimensoes.largura;
+
+    const altura =
+        dimensoes.altura;
+
+
+    ctx.clearRect(
+        0,
+        0,
+        largura,
+        altura
     );
 
 
-    repriseAnimacao =
-        requestAnimationFrame(
-            atualizarReprise
+    const margem = {
+        esquerda: 65,
+        direita: 25,
+        superior: 25,
+        inferior: 55
+    };
+
+
+    const graficoLargura =
+        largura -
+        margem.esquerda -
+        margem.direita;
+
+
+    const graficoAltura =
+        altura -
+        margem.superior -
+        margem.inferior;
+
+
+    const escalaY =
+        calcularEscalaY();
+
+
+    desenharEixos(
+        largura,
+        altura,
+        margem,
+        repriseDuracaoTotal,
+        escalaY
+    );
+
+
+    // --------------------------------------------------------
+    // Mostra apenas os dados até o instante atual da reprise.
+    // --------------------------------------------------------
+
+    const dados1 =
+        dadosCapsula1.filter(
+            function (ponto) {
+
+                return (
+                    ponto.tempo <=
+                    tempoAtualReprise
+                );
+            }
         );
+
+
+    const dados2 =
+        dadosCapsula2.filter(
+            function (ponto) {
+
+                return (
+                    ponto.tempo <=
+                    tempoAtualReprise
+                );
+            }
+        );
+
+
+    desenharLinha(
+        dados1,
+        margem,
+        graficoLargura,
+        graficoAltura,
+        repriseDuracaoTotal,
+        escalaY.minimo,
+        escalaY.maximo,
+        COR_CAPSULA_1
+    );
+
+
+    desenharLinha(
+        dados2,
+        margem,
+        graficoLargura,
+        graficoAltura,
+        repriseDuracaoTotal,
+        escalaY.minimo,
+        escalaY.maximo,
+        COR_CAPSULA_2
+    );
 }
 
 
@@ -1208,7 +2041,7 @@ function pararReprise() {
     emReprise = false;
 
 
-    if (repriseAnimacao !== null) {
+    if (repriseAnimacao) {
 
         cancelAnimationFrame(
             repriseAnimacao
@@ -1220,1008 +2053,132 @@ function pararReprise() {
 
 
 // ============================================================
-// MOSTRAR TEMPERATURAS FINAIS
+// NOVA SESSÃO
 // ============================================================
 
-function mostrarTemperaturasFinais() {
+function novaSessao() {
 
-    // Primeiro tenta encontrar elementos próprios
-    // para as temperaturas finais.
+    pararReprise();
 
-    const final1 =
+
+    if (temporizadorCapsula2) {
+
+        clearTimeout(
+            temporizadorCapsula2
+        );
+
+        temporizadorCapsula2 =
+            null;
+    }
+
+
+    etapa = "aguardando1";
+
+
+    dadosCapsula1 = [];
+    dadosCapsula2 = [];
+
+
+    inicioRealCapsula1 =
+        null;
+
+    inicioRealCapsula2 =
+        null;
+
+
+    duracaoCapsula1 =
+        null;
+
+    duracaoCapsula2 =
+        null;
+
+
+    tempoParadoCapsula1 =
+        null;
+
+    tempoParadoCapsula2 =
+        null;
+
+
+    temperaturaFinalCapsula1 =
+        null;
+
+    temperaturaFinalCapsula2 =
+        null;
+
+
+    temperaturaAtual =
+        null;
+
+
+    totalLeituras =
+        0;
+
+
+    if (botaoIniciar) {
+        botaoIniciar.disabled = false;
+    }
+
+    if (botaoParar) {
+        botaoParar.disabled = true;
+    }
+
+    if (botaoIniciar2) {
+        botaoIniciar2.disabled = true;
+    }
+
+    if (botaoParar2) {
+        botaoParar2.disabled = true;
+    }
+
+    if (botaoReprise) {
+        botaoReprise.disabled = true;
+    }
+
+    if (botaoNovaSessao) {
+        botaoNovaSessao.disabled = false;
+    }
+
+
+    if (tempoAtual) {
+        tempoAtual.textContent =
+            "0,0 s";
+    }
+
+
+    if (quantidadeLeituras) {
+        quantidadeLeituras.textContent =
+            "0";
+    }
+
+
+    atualizarEstadoExperimento();
+
+
+    if (descricaoControle) {
+        descricaoControle.textContent =
+            "Pressione “Iniciar” para começar uma nova medição.";
+    }
+
+
+    const resultado =
         document.getElementById(
-            "temperaturaFinalCapsula1"
-        );
-
-    const final2 =
-        document.getElementById(
-            "temperaturaFinalCapsula2"
+            "resultadoFinal"
         );
 
 
-    if (final1) {
-
-        final1.textContent =
-            formatarTemperatura(
-                temperaturaFinalCapsula1
-            );
+    if (resultado) {
+        resultado.remove();
     }
 
 
-    if (final2) {
-
-        final2.textContent =
-            formatarTemperatura(
-                temperaturaFinalCapsula2
-            );
-    }
-
-
-    // Caso os elementos ainda não existam no HTML,
-    // cria um bloco de resultado dentro da área do gráfico.
-
-    if (
-        !final1 &&
-        !final2
-    ) {
-
-        let resultado =
-            document.getElementById(
-                "resultadoFinal"
-            );
-
-
-        if (!resultado) {
-
-            resultado =
-                document.createElement(
-                    "div"
-                );
-
-            resultado.id =
-                "resultadoFinal";
-
-            resultado.className =
-                "resultado-final";
-
-
-            graficoArea.parentNode.insertBefore(
-                resultado,
-                graficoArea.nextSibling
-            );
-        }
-
-
-        resultado.innerHTML = `
-
-            <div class="resultado-final-titulo">
-                Temperaturas finais
-            </div>
-
-            <div class="resultado-final-grid">
-
-                <div class="resultado-final-item">
-
-                    <span>
-                        Cápsula 1
-                    </span>
-
-                    <strong>
-                        ${formatarTemperatura(
-                            temperaturaFinalCapsula1
-                        )}
-                    </strong>
-
-                </div>
-
-
-                <div class="resultado-final-item">
-
-                    <span>
-                        Cápsula 2
-                    </span>
-
-                    <strong>
-                        ${formatarTemperatura(
-                            temperaturaFinalCapsula2
-                        )}
-                    </strong>
-
-                </div>
-
-            </div>
-        `;
-    }
-}
-
-
-// ============================================================
-// DESENHAR GRÁFICO NORMAL
-// ============================================================
-
-function desenharGrafico() {
-
-    if (emReprise) {
-        return;
-    }
-
-
-    const largura =
-        graficoArea.clientWidth;
-
-    const altura =
-        graficoArea.clientHeight;
-
-
-    ctx.clearRect(
-        0,
-        0,
-        largura,
-        altura
+    atualizarStatus(
+        "Sistema pronto",
+        "online"
     );
 
 
-    // Fundo
-    ctx.fillStyle =
-        "#ffffff";
-
-    ctx.fillRect(
-        0,
-        0,
-        largura,
-        altura
-    );
-
-
-    const margem = {
-
-        esquerda: 70,
-
-        direita: 30,
-
-        superior: 30,
-
-        inferior: 60
-    };
-
-
-    const graficoLargura =
-        largura -
-        margem.esquerda -
-        margem.direita;
-
-
-    const graficoAltura =
-        altura -
-        margem.superior -
-        margem.inferior;
-
-
-    const todosDados = [
-
-        ...dadosCapsula1,
-
-        ...dadosCapsula2
-    ];
-
-
-    if (
-        todosDados.length === 0
-    ) {
-
-        desenharEixos(
-
-            margem,
-
-            graficoLargura,
-
-            graficoAltura,
-
-            largura,
-
-            altura,
-
-            60000,
-
-            20,
-
-            40
-        );
-
-        return;
-    }
-
-
-    // --------------------------------------------------------
-    // TEMPO MÁXIMO
-    // --------------------------------------------------------
-
-    let tempoMaximo;
-
-
-    if (
-        duracaoCapsula1 !== null
-    ) {
-
-        tempoMaximo =
-            duracaoCapsula1;
-
-    } else {
-
-        tempoMaximo =
-            Math.max(
-                ...todosDados.map(
-                    ponto =>
-                        ponto.tempo
-                )
-            );
-    }
-
-
-    tempoMaximo =
-        Math.max(
-            tempoMaximo,
-            1000
-        );
-
-
-    // --------------------------------------------------------
-    // TEMPERATURA
-    // --------------------------------------------------------
-
-    const temperaturas =
-        todosDados.map(
-            ponto =>
-                ponto.temperatura
-        );
-
-
-    let temperaturaMinima =
-        Math.min(
-            ...temperaturas
-        );
-
-
-    let temperaturaMaxima =
-        Math.max(
-            ...temperaturas
-        );
-
-
-    let intervalo =
-        temperaturaMaxima -
-        temperaturaMinima;
-
-
-    if (intervalo < 1) {
-        intervalo = 1;
-    }
-
-
-    temperaturaMinima -=
-        intervalo * 0.15;
-
-
-    temperaturaMaxima +=
-        intervalo * 0.15;
-
-
-    desenharEixos(
-
-        margem,
-
-        graficoLargura,
-
-        graficoAltura,
-
-        largura,
-
-        altura,
-
-        tempoMaximo,
-
-        temperaturaMinima,
-
-        temperaturaMaxima
-    );
-
-
-    // --------------------------------------------------------
-    // CÁPSULA 1
-    // --------------------------------------------------------
-
-    desenharLinha(
-
-        dadosCapsula1,
-
-        margem,
-
-        graficoLargura,
-
-        graficoAltura,
-
-        tempoMaximo,
-
-        temperaturaMinima,
-
-        temperaturaMaxima,
-
-        COR_CAPSULA_1
-    );
-
-
-    // --------------------------------------------------------
-    // CÁPSULA 2
-    // --------------------------------------------------------
-
-    desenharLinha(
-
-        dadosCapsula2,
-
-        margem,
-
-        graficoLargura,
-
-        graficoAltura,
-
-        tempoMaximo,
-
-        temperaturaMinima,
-
-        temperaturaMaxima,
-
-        COR_CAPSULA_2
-    );
-
-
-    // --------------------------------------------------------
-    // TEMPO ATUAL
-    // --------------------------------------------------------
-
-    let tempoAtual = 0;
-
-
-    if (
-        etapa === "capsula1"
-    ) {
-
-        tempoAtual =
-            Math.min(
-                tempoDaCapsula1(),
-                tempoMaximo
-            );
-
-    } else if (
-        etapa === "capsula2"
-    ) {
-
-        tempoAtual =
-            Math.min(
-                tempoDaCapsula2(),
-                tempoMaximo
-            );
-
-    } else if (
-        etapa === "aguardando2"
-    ) {
-
-        tempoAtual =
-            duracaoCapsula1;
-
-    } else if (
-        etapa === "finalizada"
-    ) {
-
-        tempoAtual =
-            tempoMaximo;
-    }
-
-
-    if (tempoElemento) {
-
-        tempoElemento.textContent =
-            formatarTempo(
-                tempoAtual / 1000
-            );
-    }
-}
-
-
-// ============================================================
-// EIXOS
-// ============================================================
-
-function desenharEixos(
-
-    margem,
-
-    graficoLargura,
-
-    graficoAltura,
-
-    largura,
-
-    altura,
-
-    tempoMaximo,
-
-    temperaturaMinima,
-
-    temperaturaMaxima
-
-) {
-
-    ctx.strokeStyle =
-        "#d7dde5";
-
-    ctx.lineWidth = 1;
-
-    ctx.fillStyle =
-        "#4b5563";
-
-    ctx.font =
-        "13px Arial";
-
-
-    const divisoesX = 6;
-    const divisoesY = 5;
-
-
-    // --------------------------------------------------------
-    // EIXO X
-    // --------------------------------------------------------
-
-    for (
-        let i = 0;
-        i <= divisoesX;
-        i++
-    ) {
-
-        const proporcao =
-            i / divisoesX;
-
-
-        const x =
-            margem.esquerda +
-            proporcao *
-            graficoLargura;
-
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            x,
-            margem.superior
-        );
-
-        ctx.lineTo(
-            x,
-            margem.superior +
-            graficoAltura
-        );
-
-        ctx.stroke();
-
-
-        const valor =
-            (
-                tempoMaximo *
-                proporcao
-            ) / 1000;
-
-
-        ctx.textAlign =
-            "center";
-
-
-        ctx.fillText(
-
-            valor.toFixed(0) + " s",
-
-            x,
-
-            margem.superior +
-            graficoAltura +
-            28
-        );
-    }
-
-
-    // --------------------------------------------------------
-    // EIXO Y
-    // --------------------------------------------------------
-
-    for (
-        let i = 0;
-        i <= divisoesY;
-        i++
-    ) {
-
-        const proporcao =
-            i / divisoesY;
-
-
-        const y =
-            margem.superior +
-            graficoAltura -
-            proporcao *
-            graficoAltura;
-
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            margem.esquerda,
-            y
-        );
-
-        ctx.lineTo(
-            margem.esquerda +
-            graficoLargura,
-            y
-        );
-
-        ctx.stroke();
-
-
-        const valor =
-            temperaturaMinima +
-            proporcao *
-            (
-                temperaturaMaxima -
-                temperaturaMinima
-            );
-
-
-        ctx.textAlign =
-            "right";
-
-
-        ctx.fillText(
-
-            valor.toFixed(1) + "°",
-
-            margem.esquerda - 12,
-
-            y + 4
-        );
-    }
-
-
-    // --------------------------------------------------------
-    // EIXOS PRINCIPAIS
-    // --------------------------------------------------------
-
-    ctx.strokeStyle =
-        "#374151";
-
-    ctx.lineWidth = 2;
-
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-
-        margem.esquerda,
-
-        margem.superior
-    );
-
-
-    ctx.lineTo(
-
-        margem.esquerda,
-
-        margem.superior +
-        graficoAltura
-    );
-
-
-    ctx.lineTo(
-
-        margem.esquerda +
-        graficoLargura,
-
-        margem.superior +
-        graficoAltura
-    );
-
-
-    ctx.stroke();
-
-
-    // --------------------------------------------------------
-    // TÍTULO X
-    // --------------------------------------------------------
-
-    ctx.fillStyle =
-        "#374151";
-
-    ctx.font =
-        "14px Arial";
-
-    ctx.textAlign =
-        "center";
-
-
-    ctx.fillText(
-
-        "Tempo",
-
-        margem.esquerda +
-        graficoLargura / 2,
-
-        altura - 12
-    );
-
-
-    // --------------------------------------------------------
-    // TÍTULO Y
-    // --------------------------------------------------------
-
-    ctx.save();
-
-
-    ctx.translate(
-
-        18,
-
-        margem.superior +
-        graficoAltura / 2
-    );
-
-
-    ctx.rotate(
-        -Math.PI / 2
-    );
-
-
-    ctx.fillText(
-
-        "Temperatura (°C)",
-
-        0,
-
-        0
-    );
-
-
-    ctx.restore();
-}
-
-
-// ============================================================
-// DESENHAR LINHA
-// ============================================================
-//
-// SEM PONTOS.
-// SEM CLIQUE.
-// SOMENTE A LINHA CONTÍNUA.
-// ============================================================
-
-function desenharLinha(
-
-    dados,
-
-    margem,
-
-    graficoLargura,
-
-    graficoAltura,
-
-    tempoMaximo,
-
-    temperaturaMinima,
-
-    temperaturaMaxima,
-
-    cor
-
-) {
-
-    if (
-        !dados ||
-        dados.length === 0
-    ) {
-        return;
-    }
-
-
-    ctx.strokeStyle =
-        cor;
-
-    ctx.lineWidth = 3;
-
-    ctx.lineJoin =
-        "round";
-
-    ctx.lineCap =
-        "round";
-
-
-    ctx.beginPath();
-
-
-    let primeiroPonto = true;
-
-
-    for (
-        const ponto of dados
-    ) {
-
-        if (
-            ponto.tempo < 0 ||
-            ponto.tempo > tempoMaximo
-        ) {
-            continue;
-        }
-
-
-        const x =
-            margem.esquerda +
-            (
-                ponto.tempo /
-                tempoMaximo
-            ) *
-            graficoLargura;
-
-
-        const y =
-            margem.superior +
-            graficoAltura -
-            (
-                (
-                    ponto.temperatura -
-                    temperaturaMinima
-                ) /
-                (
-                    temperaturaMaxima -
-                    temperaturaMinima
-                )
-            ) *
-            graficoAltura;
-
-
-        if (primeiroPonto) {
-
-            ctx.moveTo(
-                x,
-                y
-            );
-
-            primeiroPonto = false;
-
-        } else {
-
-            ctx.lineTo(
-                x,
-                y
-            );
-        }
-    }
-
-
-    ctx.stroke();
-}
-
-
-// ============================================================
-// GRÁFICO DA REPRISE
-// ============================================================
-
-function desenharGraficoReprise(
-    tempoReprise = 0
-) {
-
-    const largura =
-        graficoArea.clientWidth;
-
-    const altura =
-        graficoArea.clientHeight;
-
-
-    ctx.clearRect(
-        0,
-        0,
-        largura,
-        altura
-    );
-
-
-    ctx.fillStyle =
-        "#ffffff";
-
-    ctx.fillRect(
-        0,
-        0,
-        largura,
-        altura
-    );
-
-
-    const margem = {
-
-        esquerda: 70,
-
-        direita: 30,
-
-        superior: 30,
-
-        inferior: 60
-    };
-
-
-    const graficoLargura =
-        largura -
-        margem.esquerda -
-        margem.direita;
-
-
-    const graficoAltura =
-        altura -
-        margem.superior -
-        margem.inferior;
-
-
-    const todosDados = [
-
-        ...dadosCapsula1,
-
-        ...dadosCapsula2
-    ];
-
-
-    if (
-        todosDados.length === 0
-    ) {
-        return;
-    }
-
-
-    // --------------------------------------------------------
-    // DURANTE A REPRISE, O EIXO X USA A DURAÇÃO DA CÁPSULA 1.
-    // --------------------------------------------------------
-
-    const tempoMaximo =
-        Math.max(
-            duracaoCapsula1 || 0,
-            duracaoCapsula2 || 0,
-            1000
-        );
-
-
-    const temperaturas =
-        todosDados.map(
-            ponto =>
-                ponto.temperatura
-        );
-
-
-    let temperaturaMinima =
-        Math.min(
-            ...temperaturas
-        );
-
-
-    let temperaturaMaxima =
-        Math.max(
-            ...temperaturas
-        );
-
-
-    let intervalo =
-        temperaturaMaxima -
-        temperaturaMinima;
-
-
-    if (intervalo < 1) {
-        intervalo = 1;
-    }
-
-
-    temperaturaMinima -=
-        intervalo * 0.15;
-
-
-    temperaturaMaxima +=
-        intervalo * 0.15;
-
-
-    desenharEixos(
-
-        margem,
-
-        graficoLargura,
-
-        graficoAltura,
-
-        largura,
-
-        altura,
-
-        tempoMaximo,
-
-        temperaturaMinima,
-
-        temperaturaMaxima
-    );
-
-
-    // --------------------------------------------------------
-    // PEGAR SOMENTE O QUE JÁ DEVERIA TER APARECIDO
-    // --------------------------------------------------------
-
-    const dadosVisiveis1 =
-        dadosCapsula1.filter(
-            ponto =>
-                ponto.tempo <=
-                tempoReprise
-        );
-
-
-    const dadosVisiveis2 =
-        dadosCapsula2.filter(
-            ponto =>
-                ponto.tempo <=
-                tempoReprise
-        );
-
-
-    // --------------------------------------------------------
-    // CÁPSULA 1
-    // --------------------------------------------------------
-
-    desenharLinha(
-
-        dadosVisiveis1,
-
-        margem,
-
-        graficoLargura,
-
-        graficoAltura,
-
-        tempoMaximo,
-
-        temperaturaMinima,
-
-        temperaturaMaxima,
-
-        COR_CAPSULA_1
-    );
-
-
-    // --------------------------------------------------------
-    // CÁPSULA 2
-    // --------------------------------------------------------
-
-    desenharLinha(
-
-        dadosVisiveis2,
-
-        margem,
-
-        graficoLargura,
-
-        graficoAltura,
-
-        tempoMaximo,
-
-        temperaturaMinima,
-
-        temperaturaMaxima,
-
-        COR_CAPSULA_2
-    );
-
-
-    if (tempoElemento) {
-
-        tempoElemento.textContent =
-            formatarTempo(
-                tempoReprise / 1000
-            );
-    }
+    desenharGrafico();
 }
 
 
@@ -2229,54 +2186,54 @@ function desenharGraficoReprise(
 // EVENTOS DOS BOTÕES
 // ============================================================
 
-if (iniciarBotao) {
+if (botaoIniciar) {
 
-    iniciarBotao.addEventListener(
+    botaoIniciar.addEventListener(
         "click",
         iniciarCapsula1
     );
 }
 
 
-if (pararBotao) {
+if (botaoParar) {
 
-    pararBotao.addEventListener(
+    botaoParar.addEventListener(
         "click",
         pararCapsula1
     );
 }
 
 
-if (iniciar2Botao) {
+if (botaoIniciar2) {
 
-    iniciar2Botao.addEventListener(
+    botaoIniciar2.addEventListener(
         "click",
         iniciarCapsula2
     );
 }
 
 
-if (parar2Botao) {
+if (botaoParar2) {
 
-    parar2Botao.addEventListener(
+    botaoParar2.addEventListener(
         "click",
         pararCapsula2
     );
 }
 
 
-if (repriseBotao) {
+if (botaoReprise) {
 
-    repriseBotao.addEventListener(
+    botaoReprise.addEventListener(
         "click",
         iniciarReprise
     );
 }
 
 
-if (novaSessaoBotao) {
+if (botaoNovaSessao) {
 
-    novaSessaoBotao.addEventListener(
+    botaoNovaSessao.addEventListener(
         "click",
         novaSessao
     );
@@ -2284,12 +2241,15 @@ if (novaSessaoBotao) {
 
 
 // ============================================================
-// REDIMENSIONAMENTO
+// REDIMENSIONAMENTO DA JANELA
 // ============================================================
 
 window.addEventListener(
     "resize",
-    ajustarCanvas
+    function () {
+
+        desenharGrafico();
+    }
 );
 
 
@@ -2297,65 +2257,29 @@ window.addEventListener(
 // INICIALIZAÇÃO
 // ============================================================
 
+atualizarEstadoExperimento();
+
 atualizarInterface();
 
-ajustarCanvas();
+if (botaoParar) {
+    botaoParar.disabled = true;
+}
+
+if (botaoIniciar2) {
+    botaoIniciar2.disabled = true;
+}
+
+if (botaoParar2) {
+    botaoParar2.disabled = true;
+}
+
+if (botaoReprise) {
+    botaoReprise.disabled = true;
+}
+
 
 conectarWebSocket();
 
+loopGrafico();
 
-// ============================================================
-// ATUALIZAÇÃO DO TEMPO
-// ============================================================
-
-setInterval(function () {
-
-    if (emReprise) {
-        return;
-    }
-
-
-    if (
-        etapa === "capsula1"
-    ) {
-
-        const tempo =
-            tempoDaCapsula1();
-
-
-        if (tempoElemento) {
-
-            tempoElemento.textContent =
-                formatarTempo(
-                    tempo / 1000
-                );
-        }
-
-
-        desenharGrafico();
-
-
-    } else if (
-        etapa === "capsula2"
-    ) {
-
-        const tempo =
-            Math.min(
-                tempoDaCapsula2(),
-                duracaoCapsula1
-            );
-
-
-        if (tempoElemento) {
-
-            tempoElemento.textContent =
-                formatarTempo(
-                    tempo / 1000
-                );
-        }
-
-
-        desenharGrafico();
-    }
-
-}, 100);
+desenharGrafico();
