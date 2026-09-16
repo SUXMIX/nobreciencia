@@ -595,6 +595,48 @@
         }
 
 
+        .legenda {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            padding:
+                8px
+                12px;
+
+            border-radius: 999px;
+
+            background:
+                #f3f7fb;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            color:
+                var(--texto-secundario);
+        }
+
+
+        .legenda-cor {
+
+            width: 9px;
+            height: 9px;
+
+            border-radius: 50%;
+
+            background:
+                var(--azul-claro);
+
+            box-shadow:
+                0 0 10px
+                rgba(74,144,217,0.45);
+        }
+
+
         .canvas-wrapper {
 
             position: relative;
@@ -615,8 +657,46 @@
             width: 100%;
 
             height: 100%;
+        }
 
-            cursor: crosshair;
+        .grafico-tooltip {
+
+            position: absolute;
+
+            z-index: 5;
+
+            display: none;
+
+            pointer-events: none;
+
+            padding:
+                8px
+                12px;
+
+            border-radius: 10px;
+
+            background:
+                rgba(10, 27, 51, 0.92);
+
+            color: #fff;
+
+            font-size: 12px;
+
+            font-weight: 600;
+
+            line-height: 1.5;
+
+            white-space: nowrap;
+
+            box-shadow:
+                0 8px 20px rgba(10,27,51,0.28);
+
+            transform:
+                translate(-50%, -110%);
+        }
+
+        .grafico-tooltip strong {
+            font-weight: 800;
         }
 
 
@@ -663,8 +743,6 @@
             display: flex;
 
             gap: 10px;
-
-            flex-wrap: wrap;
         }
 
 
@@ -754,6 +832,10 @@
             color: #0A2E5C;
             background: #eef3f8;
             border: 1px solid var(--borda);
+        }
+
+        .botoes {
+            flex-wrap: wrap;
         }
 
         .estado-experimento {
@@ -948,7 +1030,7 @@
 
 
         <h1>
-            O “Efeito Estufa” na Sala de Aula
+            O "Efeito Estufa" na Sala de Aula
         </h1>
 
 
@@ -1070,65 +1152,3 @@
 
             <div
                 class="valor-secundario"
-                id="quantidadeLeituras">
-
-                0
-
-            </div>
-
-            <div
-                class="valor-unidade">
-
-                dados registrados
-
-            </div>
-
-        </div>
-
-
-    </section>
-
-
-
-    <!-- ========================================================
-         GRÁFICO
-    ======================================================== -->
-
-    <section class="grafico-card">
-
-
-        <div class="grafico-topo">
-
-            <div class="grafico-titulo">
-
-                <h2>
-                    Variação da temperatura
-                </h2>
-
-                <p>
-                    Temperatura medida ao longo do tempo — passe o mouse
-                    sobre a curva para ver tempo e temperatura
-                </p>
-
-            </div>
-
-        </div>
-
-
-        <div class="canvas-wrapper">
-
-            <canvas id="grafico"></canvas>
-
-        </div>
-
-
-        <div class="barra-controles">
-
-            <div class="controle-descricao">
-                <div id="descricaoControle">Prepare a primeira cápsula para iniciar a coleta.</div>
-                <div class="estado-experimento" id="estadoExperimento">Aguardando cápsula 1</div>
-            </div>
-
-            <div class="botoes">
-                <button id="iniciar">Iniciar cápsula 1</button>
-                <button id="parar" disabled>Parar cá
