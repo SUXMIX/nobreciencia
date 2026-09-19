@@ -3,27 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0B2545">
+    <meta name="theme-color" content="#0A2014">
     <title>Efeito Estufa — Monitoramento</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
+<a
+    class="btn-home"
+    href="https://nobreciencia.lilolilo09666.workers.dev/"
+    aria-label="Voltar à página inicial"
+>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 12L12 3l9 9"/>
+        <path d="M5 10v10h14V10"/>
+        <path d="M9 20v-6h6v6"/>
+    </svg>
+    <span>Início</span>
+</a>
+
 <header>
     <div class="cabecalho-conteudo">
         <div class="marca">
-            <div class="marca-simbolo">NC</div>
+            <div class="marca-simbolo">N</div>
             <div class="marca-texto">
-                <strong>Nobre Ciência</strong>
-                <span>Projeto de Ciência e Sustentabilidade</span>
+                <strong>Nobre</strong>
+                <span>Ciência</span>
             </div>
         </div>
 
         <div class="cabecalho-titulo">
+            <span class="eyebrow">PROJETO DE CIÊNCIA E SUSTENTABILIDADE</span>
             <h1>O “Efeito Estufa” na Sala de Aula</h1>
             <p>Monitoramento da temperatura durante o experimento</p>
         </div>
@@ -43,7 +58,10 @@
             </div>
         </div>
         <div class="status-direita">
-            <span class="status-tag">tempo real</span>
+            <span class="status-tag">
+                <span class="status-tag-dot"></span>
+                tempo real
+            </span>
         </div>
     </section>
 
@@ -74,7 +92,7 @@
     <section class="grafico-container">
         <div class="grafico-cabecalho">
             <div class="grafico-titulo">
-                <span class="eyebrow">MONITORAMENTO</span>
+                <span class="eyebrow eyebrow-dourado">MONITORAMENTO</span>
                 <h2>Temperatura × tempo</h2>
                 <p id="descricaoControle">Inicie a cápsula 1 para começar o experimento.</p>
             </div>
@@ -83,11 +101,11 @@
                 <div id="estadoExperimento" class="estado-experimento">Aguardando</div>
                 <div class="legenda">
                     <div class="legenda-item">
-                        <span class="legenda-cor" style="background:#0B2545"></span>
+                        <span class="legenda-cor" style="background:#1F5A3C"></span>
                         <span>Cápsula 1</span>
                     </div>
                     <div class="legenda-item">
-                        <span class="legenda-cor" style="background:#F59E0B"></span>
+                        <span class="legenda-cor" style="background:#C9A24B"></span>
                         <span>Cápsula 2</span>
                     </div>
                 </div>
@@ -108,27 +126,31 @@
                 <span class="controle-titulo">Cápsula 1</span>
                 <div class="botoes">
                     <button id="iniciar" type="button" class="btn btn-verde">Iniciar</button>
-                    <button id="parar" type="button" class="btn btn-azul" disabled>Parar</button>
+                    <button id="parar" type="button" class="btn btn-outline" disabled>Parar</button>
                 </div>
             </div>
 
             <div class="grupo-controle">
                 <span class="controle-titulo">Cápsula 2</span>
                 <div class="botoes">
-                    <button id="iniciar2" type="button" class="btn btn-azul-claro" disabled>Iniciar</button>
-                    <button id="parar2" type="button" class="btn btn-azul" disabled>Parar</button>
+                    <button id="iniciar2" type="button" class="btn btn-dourado" disabled>Iniciar</button>
+                    <button id="parar2" type="button" class="btn btn-outline" disabled>Parar</button>
                 </div>
             </div>
 
             <div class="grupo-controle grupo-reprise">
                 <span class="controle-titulo">Resultado</span>
                 <div class="botoes">
-                    <button id="reprise" type="button" class="btn btn-amarelo" disabled>Reprise</button>
+                    <button id="reprise" type="button" class="btn btn-dourado-soft" disabled>Reprise</button>
                     <button id="novaSessao" type="button" class="btn btn-neutro">Nova sessão</button>
                 </div>
             </div>
         </div>
     </section>
+
+
+    <!-- RESULTADO FINAL (preenchido por JS) -->
+    <div id="areaResultado"></div>
 
 
     <!-- INFORMAÇÕES -->
@@ -155,10 +177,11 @@
 
 
 <footer>
-    <p>Nobre Ciência (2026)</p>
+    <span class="footer-linha"></span>
+    <p>Nobre Ciência © 2026</p>
 </footer>
 
-<script src="app.js?v=4"></script>
+<script src="app.js?v=5"></script>
 
 </body>
 </html>
