@@ -1,45 +1,469 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#061611">
+    <meta name="description" content="Eunice Foote e o Efeito Estufa na Sala de Aula — Projeto de Ciência e Sustentabilidade — IFBA Campus Irecê, SNCT 2026.">
 
-    <title>Efeito Estufa — Experimento</title>
+    <title>Nobre Ciência — Eunice Foote e o Efeito Estufa</title>
 
-    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="landing.css">
 </head>
 
 <body>
 
-    <header>
-        <h1>O "Efeito Estufa" na Sala de Aula</h1>
-        <p>Experimento de conscientização sobre sustentabilidade</p>
-    </header>
+<!-- ===================== TOP NAV ===================== -->
+<nav class="topnav">
+    <div class="topnav-inner">
+        <a class="topnav-brand" href="index.html">
+            <span class="brand-mark">N</span>
+            <span class="brand-name">
+                <strong>Nobre</strong>
+                <em>Ciência</em>
+            </span>
+        </a>
 
-    <main>
+        <div class="topnav-links">
+            <a href="#sobre">Sobre</a>
+            <a href="#eunice">Eunice Foote</a>
+            <a href="#experimento">Experimento</a>
+            <a href="#resultados">Resultados</a>
+            <a class="topnav-cta" href="apresentacao.html">
+                Monitoramento
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>
+                </svg>
+            </a>
+        </div>
+    </div>
+</nav>
 
-        <section class="apresentacao">
-            <h2>Experimento</h2>
+
+<!-- ===================== HERO ===================== -->
+<header class="hero">
+    <div class="hero-grid" aria-hidden="true"></div>
+
+    <div class="hero-inner">
+
+        <div class="hero-badges">
+            <span class="hero-badge">IFBA · Campus Irecê</span>
+            <span class="hero-badge hero-badge-gold">SNCT 2026 · Ciência Delas</span>
+        </div>
+
+        <h1 class="hero-title">
+            Eunice Foote e o <em>“Efeito Estufa”</em> na Sala de Aula
+        </h1>
+
+        <div class="hero-rule" aria-hidden="true"></div>
+
+        <p class="hero-subtitle">
+            Uma experiência sobre ciência esquecida e sustentabilidade —
+            revisitando o experimento pioneiro de 1856 com materiais de baixo custo,
+            sensor MLX90614 e ESP32.
+        </p>
+
+        <div class="hero-actions">
+            <a class="btn-cta" href="apresentacao.html">
+                <span>Abrir monitoramento em tempo real</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>
+                </svg>
+            </a>
+            <a class="btn-ghost" href="#sobre">Explorar o projeto</a>
+        </div>
+
+    </div>
+
+    <div class="hero-stats">
+        <div class="hero-stat">
+            <strong>1856</strong>
+            <span>experimento pioneiro</span>
+        </div>
+        <div class="hero-stat">
+            <strong>90 s</strong>
+            <span>janela de análise</span>
+        </div>
+        <div class="hero-stat">
+            <strong>2 / 3</strong>
+            <span>ensaios com CO₂ mais quente</span>
+        </div>
+        <div class="hero-stat">
+            <strong>0,8 °C</strong>
+            <span>maior diferença observada</span>
+        </div>
+    </div>
+</header>
+
+
+<main>
+
+    <!-- ===================== SOBRE ===================== -->
+    <section class="section" id="sobre">
+        <div class="section-head">
+            <span class="eyebrow">SOBRE O PROJETO</span>
+            <h2>Entre ciência, história e sustentabilidade</h2>
+            <p>
+                Este trabalho revisita e adapta ao ambiente escolar o experimento
+                realizado por Eunice Newton Foote em 1856, valorizando sua
+                contribuição pioneira para a compreensão do efeito estufa e da
+                relação entre a composição atmosférica e o aquecimento do planeta.
+            </p>
+        </div>
+
+        <div class="pillars">
+            <article class="pillar">
+                <span class="pillar-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 3h6v4l4 8a4 4 0 0 1-3.6 5.8H8.6A4 4 0 0 1 5 15l4-8z"/>
+                        <path d="M9 14h6"/>
+                    </svg>
+                </span>
+                <h3>Ciência</h3>
+                <p>
+                    Investigação experimental sobre a influência do CO₂ na
+                    variação de temperatura de uma superfície exposta à radiação
+                    infravermelha, com medições em tempo real.
+                </p>
+            </article>
+
+            <article class="pillar">
+                <span class="pillar-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="M12 7v5l3 2"/>
+                    </svg>
+                </span>
+                <h3>História</h3>
+                <p>
+                    Resgate da trajetória de Eunice Foote, cientista e ativista
+                    pelos direitos das mulheres, cujo trabalho permaneceu
+                    invisibilizado por mais de um século.
+                </p>
+            </article>
+
+            <article class="pillar">
+                <span class="pillar-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 21V7"/>
+                        <path d="M12 7c0-2.5 2-4 5-4 0 3-2 5-5 5z"/>
+                        <path d="M12 11C12 8.5 10 7 7 7c0 3 2 5 5 5z"/>
+                        <path d="M5 21h14"/>
+                    </svg>
+                </span>
+                <h3>Sustentabilidade</h3>
+                <p>
+                    Discussão sobre a intensificação do efeito estufa pelas
+                    atividades humanas e a urgência da redução das emissões de
+                    gases poluentes, alinhada ao ODS 13.
+                </p>
+            </article>
+        </div>
+    </section>
+
+
+    <!-- ===================== CITAÇÃO ===================== -->
+    <section class="quote-section" aria-label="Citação de Eunice Foote">
+        <div class="quote-mark" aria-hidden="true">“</div>
+        <blockquote>
+            Uma atmosfera desse gás daria à nossa Terra uma temperatura elevada.
+        </blockquote>
+        <cite>
+            <span class="cite-name">Eunice Newton Foote</span>
+            <span class="cite-year">Circumstances affecting the heat of the sun’s rays · 1856</span>
+        </cite>
+    </section>
+
+
+    <!-- ===================== EUNICE ===================== -->
+    <section class="section eunice" id="eunice">
+        <div class="eunice-portrait">
+            <div class="portrait-card">
+                <div class="portrait-halo" aria-hidden="true"></div>
+                <span class="portrait-mono" aria-hidden="true">EF</span>
+                <span class="portrait-year">1819 — 1888</span>
+            </div>
+            <div class="portrait-caption">
+                <span>Física · Inventora · Ativista</span>
+                <strong>Eunice Newton Foote</strong>
+            </div>
+        </div>
+
+        <div class="eunice-bio">
+            <span class="eyebrow">QUEM FOI</span>
+            <h2>A cientista que antecipou o efeito estufa</h2>
 
             <p>
-                Esta página será utilizada durante a apresentação
-                para acompanhar o experimento em tempo real.
+                Em 1856, a norte-americana <strong>Eunice Newton Foote</strong> publicou
+                o artigo <em>Circumstances affecting the heat of the sun’s rays</em>,
+                no qual relatou experimentos com diferentes gases expostos à luz
+                solar. Ela observou que o dióxido de carbono (CO₂) apresentava maior
+                elevação de temperatura e permanecia aquecido por mais tempo que o
+                ar comum — uma das primeiras observações científicas a relacionar
+                esse gás ao aquecimento atmosférico.
             </p>
 
-            <a href="/apresentacao.html">
-                Área de apresentação
-            </a>
-        </section>
+            <p>
+                Seu estudo foi apresentado na reunião da <em>American Association for
+                the Advancement of Science</em> (AAAS) pelo físico Joseph Henry, em um
+                contexto no qual a participação feminina na ciência era
+                desencorajada. Anos depois, os trabalhos de John Tyndall receberam
+                maior destaque, enquanto o nome de Foote permaneceu apagado por
+                mais de um século.
+            </p>
 
-    </main>
+            <p>
+                Resgatar sua trajetória é reconhecer que a ciência é construída por
+                pessoas de diferentes épocas e contextos — e que visibilizar as
+                mulheres na produção do conhecimento é parte essencial do fazer
+                científico.
+            </p>
 
-    <footer>
-        <p>Projeto científico</p>
-    </footer>
+            <div class="eunice-facts">
+                <div class="fact">
+                    <strong>1856</strong>
+                    <span>publicação do artigo</span>
+                </div>
+                <div class="fact">
+                    <strong>AAAS</strong>
+                    <span>apresentado por Joseph Henry</span>
+                </div>
+                <div class="fact">
+                    <strong>+100</strong>
+                    <span>anos de invisibilidade</span>
+                </div>
+            </div>
+        </div>
+    </section>
 
-    <script src="app.js"></script>
+
+    <!-- ===================== EXPERIMENTO ===================== -->
+    <section class="section" id="experimento">
+        <div class="section-head">
+            <span class="eyebrow">O EXPERIMENTO</span>
+            <h2>Adaptação escolar em três etapas</h2>
+            <p>
+                Baseado no protótipo de Junges et al. (2020), o sistema compara
+                o comportamento térmico do ar atmosférico e do CO₂ dentro de uma
+                célula exposta à radiação infravermelha, com leituras contínuas
+                a cada 0,05 segundo.
+            </p>
+        </div>
+
+        <div class="steps">
+            <article class="step">
+                <span class="step-num">01</span>
+                <h3>Montagem</h3>
+                <p>
+                    Lata de aço de 1 L isolada com papel-bolha e alumínio, com
+                    extremidades vedadas por filme termo-retrátil. Sensor
+                    MLX90614 posicionado a 10 cm e lâmpada de 250 W a 20 cm.
+                </p>
+                <ul class="step-list">
+                    <li>Lâmpada infravermelha 250 W</li>
+                    <li>Sensor MLX90614 + ESP32</li>
+                    <li>Célula isolada com filme</li>
+                </ul>
+            </article>
+
+            <article class="step">
+                <span class="step-num">02</span>
+                <h3>Produção de CO₂</h3>
+                <p>
+                    O gás é gerado externamente pela reação entre bicarbonato de
+                    sódio e ácido acético (vinagre a 4 %), conduzido à célula por
+                    mangueira e válvula pneumática.
+                </p>
+                <ul class="step-list">
+                    <li>3,402 g de NaHCO₃</li>
+                    <li>60,75 mL de vinagre 4 %</li>
+                    <li>≈ 1 L de CO₂ (28 °C, 1 atm)</li>
+                </ul>
+            </article>
+
+            <article class="step">
+                <span class="step-num">03</span>
+                <h3>Medição</h3>
+                <p>
+                    Cada condição é exposta por 90 segundos à radiação, com
+                    resfriamento de 6 a 7 minutos entre as etapas. Os dados são
+                    exibidos em tempo real na plataforma.
+                </p>
+                <ul class="step-list">
+                    <li>Janela de 90 s por condição</li>
+                    <li>Leitura a cada 0,05 s</li>
+                    <li>3 ensaios independentes</li>
+                </ul>
+            </article>
+        </div>
+    </section>
+
+
+    <!-- ===================== RESULTADOS ===================== -->
+    <section class="section resultados" id="resultados">
+        <div class="section-head">
+            <span class="eyebrow">RESULTADOS</span>
+            <h2>Três ensaios, um comportamento parcialmente consistente</h2>
+            <p>
+                Em dois dos três ensaios, a condição com introdução de CO₂
+                apresentou temperatura final superior à do ar atmosférico. O
+                primeiro teste, tratado como piloto, apresentou comportamento
+                contrário e foi excluído da comparação principal.
+            </p>
+        </div>
+
+        <div class="resultados-grid">
+            <article class="result-card">
+                <header>
+                    <span class="result-tag">Ensaio 01 · Piloto</span>
+                    <span class="result-chip">descartado</span>
+                </header>
+
+                <div class="result-values">
+                    <div class="result-col">
+                        <span class="result-label">Ar atmosférico</span>
+                        <strong class="result-value">+6,6 <small>°C</small></strong>
+                        <span class="result-detail">31,2 → 37,8 °C</span>
+                    </div>
+                    <div class="result-col">
+                        <span class="result-label">Com CO₂</span>
+                        <strong class="result-value">+5,0 <small>°C</small></strong>
+                        <span class="result-detail">30,0 → 35,0 °C</span>
+                    </div>
+                </div>
+
+                <footer class="result-footer result-footer-neg">
+                    Ar 1,6 °C acima do CO₂
+                </footer>
+            </article>
+
+            <article class="result-card featured">
+                <header>
+                    <span class="result-tag">Ensaio 02</span>
+                    <span class="result-chip result-chip-ok">CO₂ acima</span>
+                </header>
+
+                <div class="result-values">
+                    <div class="result-col">
+                        <span class="result-label">Ar atmosférico</span>
+                        <strong class="result-value">≈37,5 <small>°C</small></strong>
+                        <span class="result-detail">temperatura final</span>
+                    </div>
+                    <div class="result-col">
+                        <span class="result-label">Com CO₂</span>
+                        <strong class="result-value destaque">≈38,3 <small>°C</small></strong>
+                        <span class="result-detail">temperatura final</span>
+                    </div>
+                </div>
+
+                <footer class="result-footer result-footer-pos">
+                    CO₂ 0,8 °C acima do ar
+                </footer>
+            </article>
+
+            <article class="result-card">
+                <header>
+                    <span class="result-tag">Ensaio 03</span>
+                    <span class="result-chip result-chip-ok">CO₂ acima</span>
+                </header>
+
+                <div class="result-values">
+                    <div class="result-col">
+                        <span class="result-label">Ar atmosférico</span>
+                        <strong class="result-value">36,47 <small>°C</small></strong>
+                        <span class="result-detail">temperatura final</span>
+                    </div>
+                    <div class="result-col">
+                        <span class="result-label">Com CO₂</span>
+                        <strong class="result-value destaque">36,65 <small>°C</small></strong>
+                        <span class="result-detail">temperatura final</span>
+                    </div>
+                </div>
+
+                <footer class="result-footer result-footer-pos">
+                    CO₂ 0,18 °C acima do ar
+                </footer>
+            </article>
+        </div>
+
+        <p class="resultado-nota">
+            <strong>Limitações:</strong> a concentração final de CO₂ não pôde ser
+            medida experimentalmente; perdas de gás, trocas de calor com o
+            ambiente e diferenças de vedação podem influenciar principalmente
+            ensaios com pequenas diferenças de temperatura.
+        </p>
+    </section>
+
+
+    <!-- ===================== CTA ===================== -->
+    <section class="cta-section">
+        <div class="cta-card">
+            <div class="cta-glow" aria-hidden="true"></div>
+
+            <span class="eyebrow eyebrow-gold">ÁREA DE APRESENTAÇÃO</span>
+            <h2>Acompanhe o experimento em tempo real</h2>
+            <p>
+                A plataforma de monitoramento recebe a temperatura do sensor
+                MLX90614 via WebSocket, exibe as curvas das duas cápsulas
+                durante a apresentação e permite reproduzir o ensaio completo.
+            </p>
+
+            <div class="cta-actions">
+                <a class="btn-cta btn-cta-gold" href="apresentacao.html">
+                    <span>Acessar o monitoramento</span>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ===================== EQUIPE ===================== -->
+    <section class="section equipe" id="equipe">
+        <div class="section-head">
+            <span class="eyebrow">EQUIPE</span>
+            <h2>Segundo Ano B — Informática</h2>
+            <p>Instituto Federal de Ciência, Educação e Tecnologia da Bahia — Campus Irecê</p>
+        </div>
+
+        <div class="equipe-grid">
+            <div class="membro"><span class="membro-inicial">C</span><strong>Carlos Eduardo Rodrigues dos Santos</strong></div>
+            <div class="membro"><span class="membro-inicial">E</span><strong>Eduarda Pereira de Almeida Silva</strong></div>
+            <div class="membro"><span class="membro-inicial">J</span><strong>Júlio Cezar Souza Carneiro</strong></div>
+            <div class="membro"><span class="membro-inicial">K</span><strong>Keila Cristina Santos de Oliveira</strong></div>
+            <div class="membro"><span class="membro-inicial">L</span><strong>Lucas Lima Barbosa</strong></div>
+            <div class="membro"><span class="membro-inicial">V</span><strong>Vitor da Costa</strong></div>
+        </div>
+    </section>
+
+</main>
+
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <span class="brand-mark brand-mark-sm">N</span>
+            <div>
+                <strong>Nobre Ciência</strong>
+                <span>Projeto de Ciência e Sustentabilidade</span>
+            </div>
+        </div>
+
+        <div class="footer-meta">
+            <span>IFBA · Campus Irecê</span>
+            <span class="footer-sep" aria-hidden="true"></span>
+            <span>SNCT 2026</span>
+            <span class="footer-sep" aria-hidden="true"></span>
+            <span>© 2026</span>
+        </div>
+    </div>
+</footer>
 
 </body>
-
 </html>
