@@ -12,10 +12,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="landing.css">
+    <link rel="stylesheet" href="landing-v6.css">
 </head>
 
 <body>
+
+<div class="progresso" aria-hidden="true"></div>
 
 <!-- ===================== TOP NAV ===================== -->
 <nav class="topnav">
@@ -48,6 +50,16 @@
 <header class="hero">
     <div class="hero-grid" aria-hidden="true"></div>
 
+    <svg class="hero-molecula hero-molecula-a" viewBox="0 0 120 40" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
+        <circle cx="20" cy="20" r="10"/><circle cx="60" cy="20" r="8"/><circle cx="100" cy="20" r="10"/>
+        <path d="M30 18h22M30 22h22M68 18h22M68 22h22"/>
+    </svg>
+    <svg class="hero-molecula hero-molecula-b" viewBox="0 0 120 40" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
+        <circle cx="20" cy="20" r="10"/><circle cx="60" cy="20" r="8"/><circle cx="100" cy="20" r="10"/>
+        <path d="M30 18h22M30 22h22M68 18h22M68 22h22"/>
+    </svg>
+
+    <div class="hero-layout">
     <div class="hero-inner">
 
         <div class="hero-badges">
@@ -97,13 +109,14 @@
             <span>maior diferença observada</span>
         </div>
     </div>
+    </div>
 </header>
 
 
 <main>
 
     <!-- ===================== SOBRE ===================== -->
-    <section class="section" id="sobre">
+    <section class="section split" id="sobre">
         <div class="section-head">
             <span class="eyebrow">SOBRE O PROJETO</span>
             <h2>Entre ciência, história e sustentabilidade</h2>
@@ -183,13 +196,13 @@
     <section class="section eunice" id="eunice">
         <div class="eunice-portrait">
             <div class="portrait-card">
-                <div class="portrait-halo" aria-hidden="true"></div>
-                <span class="portrait-mono" aria-hidden="true">EF</span>
+                <img class="portrait-foto" src="eunice.webp" alt="Retrato fotográfico de Eunice Newton Foote, de perfil" width="268" height="206">
                 <span class="portrait-year">1819 — 1888</span>
             </div>
             <div class="portrait-caption">
                 <span>Física · Inventora · Ativista</span>
                 <strong>Eunice Newton Foote</strong>
+                <small class="portrait-credito">Imagem: Real Life Heroes Wiki</small>
             </div>
         </div>
 
@@ -241,8 +254,88 @@
     </section>
 
 
+    <!-- ===================== LINHA DO TEMPO ===================== -->
+    <section class="section" id="historia">
+        <div class="section-head">
+            <span class="eyebrow">LINHA DO TEMPO</span>
+            <h2>De 1856 até hoje</h2>
+            <p>Do experimento pioneiro de Foote ao resgate de sua trajetória.</p>
+        </div>
+
+        <div class="linha-tempo">
+            <div class="tl-item">
+                <div class="tl-ano">1856</div>
+                <p>Foote publica <em>Circumstances affecting the heat of the sun’s rays</em>, apresentado na AAAS por Joseph Henry.</p>
+            </div>
+            <div class="tl-item">
+                <div class="tl-ano">1859</div>
+                <p>John Tyndall investiga de forma mais direta a absorção da radiação infravermelha por gases como H₂O e CO₂.</p>
+            </div>
+            <div class="tl-item">
+                <div class="tl-ano">+100 anos</div>
+                <p>O nome de Foote permanece pouco conhecido, enquanto os trabalhos de Tyndall ganham maior destaque.</p>
+            </div>
+            <div class="tl-item">
+                <div class="tl-ano">2022</div>
+                <p>Ortiz e Jackson publicam uma análise dos experimentos de Foote de 1856 na revista da Royal Society.</p>
+            </div>
+        </div>
+    </section>
+
+
+    <!-- ===================== FUNDAMENTOS ===================== -->
+    <section class="section split banda" id="efeito-estufa">
+        <div class="section-head">
+            <span class="eyebrow">FUNDAMENTOS</span>
+            <h2>Como o efeito estufa funciona</h2>
+            <p>
+                O efeito estufa é um fenômeno natural essencial à vida na Terra: parte da
+                energia térmica fica retida na atmosfera e ajuda a regular a temperatura do
+                planeta. O problema está na sua intensificação pelas atividades humanas.
+            </p>
+        </div>
+
+        <div class="steps">
+            <article class="step">
+                <span class="step-num">01</span>
+                <h3>Aquecimento da superfície</h3>
+                <p>A radiação solar atravessa a atmosfera e aquece a superfície terrestre.</p>
+                <ul class="step-list">
+                    <li>Temperatura média de ≈ 288 K (15 °C)</li>
+                </ul>
+            </article>
+
+            <article class="step">
+                <span class="step-num">02</span>
+                <h3>Emissão infravermelha</h3>
+                <p>A superfície aquecida reemite parte da energia como radiação infravermelha de onda longa.</p>
+                <ul class="step-list">
+                    <li>Faixa de ≈ 4 a 100 μm</li>
+                    <li>Pico próximo de 10 μm (Lei de Wien)</li>
+                </ul>
+            </article>
+
+            <article class="step">
+                <span class="step-num">03</span>
+                <h3>Absorção pelos gases</h3>
+                <p>Os gases de efeito estufa absorvem parte dessa radiação e a reemitem, inclusive de volta à superfície.</p>
+                <ul class="step-list">
+                    <li>CO₂: banda em torno de 15 μm</li>
+                    <li>Também: H₂O, CH₄, N₂O e O₃</li>
+                </ul>
+            </article>
+        </div>
+
+        <p class="resultado-nota">
+            <strong>Por que importa:</strong> o aumento do CO₂ decorre principalmente da
+            agropecuária, da queima de combustíveis fósseis, do desmatamento e de processos
+            industriais.
+        </p>
+    </section>
+
+
     <!-- ===================== EXPERIMENTO ===================== -->
-    <section class="section" id="experimento">
+    <section class="section split" id="experimento">
         <div class="section-head">
             <span class="eyebrow">O EXPERIMENTO</span>
             <h2>Adaptação escolar em três etapas</h2>
@@ -304,7 +397,7 @@
 
 
     <!-- ===================== RESULTADOS ===================== -->
-    <section class="section resultados" id="resultados">
+    <section class="section resultados banda" id="resultados">
         <div class="section-head">
             <span class="eyebrow">RESULTADOS</span>
             <h2>Três ensaios, um comportamento parcialmente consistente</h2>
@@ -442,6 +535,24 @@
         </div>
     </section>
 
+    <!-- ===================== REFERÊNCIAS ===================== -->
+    <section class="section refs" id="referencias">
+        <details class="refs-card">
+            <summary>Referências principais</summary>
+            <ul>
+                <li>FOOTE, Eunice Newton. Circumstances affecting the heat of the sun’s rays. <em>The American Journal of Science and Arts</em>, 2. ser., v. 22, n. 66, p. 382–383, nov. 1856.</li>
+                <li>JUNGES, A. L.; BÜHLER, A. J.; MASSONI, N. T.; SIEBENEICHLER, A. F. S. O “efeito estufa” na sala de aula: um experimento de baixo custo para demonstrar a absorção de radiação infravermelha por gases estufa como o dióxido de carbono. <em>Caderno Brasileiro de Ensino de Física</em>, v. 37, n. 2, p. 849–864, 2020.</li>
+                <li>ORTIZ, Joseph D.; JACKSON, Roland. Understanding Eunice Foote’s 1856 experiments: heat absorption by atmospheric gases. <em>Notes and Records</em>, v. 76, n. 1, p. 67–84, 2022.</li>
+                <li>AMERICAN INSTITUTE OF PHYSICS. Eunice Foote: a once forgotten climate science pioneer. AIP, 2022.</li>
+                <li>JOOSSE, Tess. Eunice Newton Foote’s 1856 experiment. <em>APS News</em>, jul. 2023.</li>
+                <li>FLEMING, James Rodger. Historical perspectives on climate change. New York: Oxford University Press, 1998.</li>
+                <li>JUNGES, A. L.; SANTOS, V. Y.; MASSONI, N. T.; SANTOS, F. A. C. Efeito estufa e aquecimento global: uma abordagem conceitual a partir da Física para educação básica. <em>Experiências em Ensino de Ciências</em>, v. 5, p. 126–151, 2018.</li>
+                <li>ACADEMIA AUSTRALIANA DE CIÊNCIAS. A ciência das mudanças climáticas: perguntas e respostas. Canberra, 2015.</li>
+                <li>A lista completa está no resumo expandido do projeto.</li>
+            </ul>
+        </details>
+    </section>
+
 </main>
 
 
@@ -464,6 +575,60 @@
         </div>
     </div>
 </footer>
+
+<script>
+(function () {
+    var doc = document, raiz = doc.documentElement;
+    var reduzir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    raiz.classList.add('js');
+
+    /* Aparecer ao rolar */
+    var alvos = doc.querySelectorAll('.section-head, .pillars, .steps, .resultados-grid, .resultado-nota, .equipe-grid, .quote-section, .cta-card, .eunice-portrait, .eunice-bio, .linha-tempo, .refs-card');
+    alvos.forEach(function (el) { el.classList.add('reveal'); });
+
+    if (reduzir || !('IntersectionObserver' in window)) {
+        alvos.forEach(function (el) { el.classList.add('visivel'); });
+    } else {
+        var io = new IntersectionObserver(function (itens) {
+            itens.forEach(function (i) {
+                if (i.isIntersecting) { i.target.classList.add('visivel'); io.unobserve(i.target); }
+            });
+        }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+        alvos.forEach(function (el) { io.observe(el); });
+    }
+
+    /* Barra de progresso e menu compacto */
+    var barra = doc.querySelector('.progresso');
+    var menu = doc.querySelector('.topnav');
+    var aguardando = false;
+
+    function atualizar() {
+        var total = raiz.scrollHeight - window.innerHeight;
+        barra.style.transform = 'scaleX(' + (total > 0 ? window.scrollY / total : 0) + ')';
+        menu.classList.toggle('rolou', window.scrollY > 30);
+        aguardando = false;
+    }
+
+    window.addEventListener('scroll', function () {
+        if (!aguardando) { aguardando = true; requestAnimationFrame(atualizar); }
+    }, { passive: true });
+    atualizar();
+
+    /* Destaca no menu a seção que está na tela */
+    if ('IntersectionObserver' in window) {
+        var links = {};
+        doc.querySelectorAll('.topnav-links a[href^="#"]').forEach(function (a) { links[a.getAttribute('href').slice(1)] = a; });
+        var so = new IntersectionObserver(function (itens) {
+            itens.forEach(function (i) {
+                if (i.isIntersecting) {
+                    Object.keys(links).forEach(function (k) { links[k].classList.toggle('ativo', k === i.target.id); });
+                }
+            });
+        }, { rootMargin: '-40% 0px -55% 0px' });
+        Object.keys(links).forEach(function (id) { var s = doc.getElementById(id); if (s) so.observe(s); });
+    }
+})();
+</script>
 
 </body>
 </html>
