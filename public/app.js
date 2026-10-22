@@ -16,6 +16,11 @@ const COR_CAPSULA_2 = "#C9A24B";
 const MAX_PONTOS_LINHA = 420;
 const RAIO_SUAVIZACAO  = 3;
 
+// Diferença (°C) considerada "bem próxima" da temperatura inicial
+const TOLERANCIA_INICIO = 0.30;
+// Distância (°C) em que a barra de proximidade fica em 0%
+const REFERENCIA_BARRA  = 3;
+
 
 // ============================================================
 // ESTADO
@@ -80,6 +85,16 @@ const botaoIniciar2   = document.getElementById("iniciar2");
 const botaoParar2     = document.getElementById("parar2");
 const botaoReprise    = document.getElementById("reprise");
 const botaoNovaSessao = document.getElementById("novaSessao");
+
+// Janela de comparação
+const janelaComparacao  = document.getElementById("janelaComparacao");
+const janelaInicial     = document.getElementById("janelaInicial");
+const janelaAtual       = document.getElementById("janelaAtual");
+const janelaDiferenca   = document.getElementById("janelaDiferenca");
+const janelaBarra       = document.getElementById("janelaBarraPreench");
+const janelaAviso       = document.getElementById("janelaAviso");
+const janelaAvisoTitulo = document.getElementById("janelaAvisoTitulo");
+const janelaAvisoTexto  = document.getElementById("janelaAvisoTexto");
 
 
 // ============================================================
@@ -223,6 +238,9 @@ function processarTemperatura(mensagem) {
     temperaturaAtual = temperatura;
     atualizarInterface();
 
+    // Mantém a janela de comparação atualizada em tempo real
+    if (etapa === "aguardando2") atualizarJanelaComparacao();
+
     if (etapa !== "capsula1" && etapa !== "capsula2") return;
 
     let inicioAtual, dadosAtual;
@@ -264,6 +282,7 @@ function iniciarCapsula1() {
 
     pararReprise();
     removerResultado();
+    fecharJanelaComparacao();
 
     dadosCapsula1 = [];
     dadosCapsula2 = [];
@@ -336,7 +355,75 @@ function pararCapsula1() {
             ". A Cápsula 2 usará exatamente esta duração.";
     }
 
+    abrirJanelaComparacao();
     desenharGrafico();
+}
+
+
+// ============================================================
+// JANELA DE COMPARAÇÃO (preparar Cápsula 2)
+// ============================================================
+
+function abrirJanelaComparacao() {
+    if (!janelaComparacao) return;
+    janelaComparacao.classList.add("visivel");
+    atualizarJanelaComparacao();
+}
+
+function fecharJanelaComparacao() {
+    if (janelaComparacao) janelaComparacao.classList.remove("visivel");
+}
+
+function atualizarJanelaComparacao() {
+    if (!janelaComparacao || !janelaComparacao.classList.contains("visivel")) return;
+
+    const inicial = temperaturaInicialCapsula1;
+    const atual   = temperaturaAtual;
+
+    janelaInicial.textContent = formatarTemperatura(inicial);
+    janelaAtual.textContent   = formatarTemperatura(atual);
+
+    janelaComparacao.classList.remove("pronta", "quase");
+    janelaAviso.classList.remove("pronta", "quase", "longe");
+
+    if (!numeroValido(inicial) || !numeroValido(atual)) {
+        janelaDiferenca.textContent = "--";
+        janelaBarra.style.width = "0%";
+        janelaAviso.classList.add("longe");
+        janelaAvisoTitulo.textContent = "Aguardando leitura";
+        janelaAvisoTexto.textContent  = "Esperando dados de temperatura do sensor.";
+        return;
+    }
+
+    const diff = atual - inicial;
+    const dist = Math.abs(diff);
+
+    janelaDiferenca.textContent =
+        (diff > 0 ? "+" : diff < 0 ? "−" : "±") + formatarNumero(dist, 2) + " °C";
+
+    const pct = Math.max(0, Math.min(100, (1 - dist / REFERENCIA_BARRA) * 100));
+    janelaBarra.style.width = pct.toFixed(0) + "%";
+
+    if (dist <= TOLERANCIA_INICIO) {
+        janelaComparacao.classList.add("pronta");
+        janelaAviso.classList.add("pronta");
+        janelaAvisoTitulo.textContent = "✔ Temperatura próxima da inicial";
+        janelaAvisoTexto.textContent  =
+            "Você já pode iniciar a Cápsula 2 quando quiser.";
+    } else if (dist <= TOLERANCIA_INICIO * 2.5) {
+        janelaComparacao.classList.add("quase");
+        janelaAviso.classList.add("quase");
+        janelaAvisoTitulo.textContent = "Quase lá";
+        janelaAvisoTexto.textContent  = diff > 0
+            ? "Falta esfriar um pouco para chegar à temperatura inicial."
+            : "Falta aquecer um pouco para chegar à temperatura inicial.";
+    } else {
+        janelaAviso.classList.add("longe");
+        janelaAvisoTitulo.textContent = "Ainda distante";
+        janelaAvisoTexto.textContent  = diff > 0
+            ? "A temperatura está acima da inicial. Aguarde esfriar."
+            : "A temperatura está abaixo da inicial. Aguarde aquecer.";
+    }
 }
 
 
@@ -357,6 +444,7 @@ function iniciarCapsula2() {
     temperaturaFinalCapsula2 = null;
 
     etapa = "capsula2";
+    fecharJanelaComparacao();
 
     if (botaoIniciar2) botaoIniciar2.disabled = true;
     if (botaoParar2)   botaoParar2.disabled = false;
@@ -919,6 +1007,7 @@ function pararReprise() {
 function novaSessao() {
     pararReprise();
     removerResultado();
+    fecharJanelaComparacao();
 
     if (temporizadorCapsula2) {
         clearTimeout(temporizadorCapsula2);
@@ -979,6 +1068,24 @@ if (botaoIniciar2)   botaoIniciar2.addEventListener("click", iniciarCapsula2);
 if (botaoParar2)     botaoParar2.addEventListener("click", pararCapsula2);
 if (botaoReprise)    botaoReprise.addEventListener("click", iniciarReprise);
 if (botaoNovaSessao) botaoNovaSessao.addEventListener("click", novaSessao);
+
+// Janela de comparação
+const janelaFechar   = document.getElementById("janelaFechar");
+const janelaFechar2  = document.getElementById("janelaFechar2");
+const janelaIniciar2 = document.getElementById("janelaIniciar2");
+
+if (janelaFechar)   janelaFechar.addEventListener("click", fecharJanelaComparacao);
+if (janelaFechar2)  janelaFechar2.addEventListener("click", fecharJanelaComparacao);
+if (janelaIniciar2) janelaIniciar2.addEventListener("click", iniciarCapsula2);
+
+if (janelaComparacao) {
+    janelaComparacao.addEventListener("click", function (e) {
+        if (e.target === janelaComparacao) fecharJanelaComparacao();
+    });
+}
+document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") fecharJanelaComparacao();
+});
 
 window.addEventListener("resize", desenharGrafico);
 
