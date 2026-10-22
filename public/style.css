@@ -888,6 +888,181 @@ footer {
 }
 
 /* =========================
+   JANELA DE COMPARAÇÃO
+   ========================= */
+
+.janela-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    background: rgba(6, 22, 17, .55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.janela-overlay.visivel {
+    display: flex;
+    animation: surgir .3s cubic-bezier(.2, .8, .2, 1);
+}
+
+.janela {
+    position: relative;
+    width: min(520px, 100%);
+    padding: 28px;
+    background: var(--branco);
+    border: 1px solid var(--borda);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--sombra-3);
+}
+
+.janela::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    background: linear-gradient(90deg, var(--dourado-500), transparent 80%);
+}
+
+.janela h3 {
+    font-family: "Cinzel", serif;
+    font-size: 21px;
+    font-weight: 600;
+    color: var(--verde-900);
+}
+
+.janela-desc {
+    margin-top: 8px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--texto-sec);
+}
+
+.janela-fechar {
+    position: absolute;
+    top: 14px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: var(--fundo-2);
+    color: var(--texto-sec);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+.janela-fechar:hover { background: var(--borda); }
+
+.janela-comparacao {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 22px;
+}
+
+.janela-item {
+    padding: 14px;
+    background: var(--fundo);
+    border: 1px solid var(--borda);
+    border-radius: var(--radius-sm);
+}
+
+.janela-item span {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--texto-sec);
+}
+
+.janela-item strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -.5px;
+    color: var(--verde-900);
+    font-variant-numeric: tabular-nums;
+}
+
+/* Barra de proximidade */
+
+.janela-barra {
+    height: 8px;
+    margin-top: 18px;
+    overflow: hidden;
+    border-radius: 100px;
+    background: var(--fundo-2);
+}
+
+.janela-barra span {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: 100px;
+    background: var(--texto-mute);
+    transition: width .4s ease, background .3s ease;
+}
+
+/* Aviso */
+
+.janela-aviso {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--borda);
+    background: var(--fundo);
+    transition: background .3s ease, border-color .3s ease;
+}
+
+.janela-aviso strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--texto);
+}
+
+.janela-aviso span {
+    display: block;
+    margin-top: 4px;
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--texto-sec);
+}
+
+.janela-aviso.quase {
+    background: rgba(201, 162, 75, .10);
+    border-color: rgba(201, 162, 75, .35);
+}
+.janela-aviso.quase strong { color: var(--dourado-700); }
+
+.janela-aviso.pronta {
+    background: rgba(31, 90, 60, .09);
+    border-color: rgba(31, 90, 60, .35);
+}
+.janela-aviso.pronta strong { color: var(--verde-600); }
+
+.janela-overlay.pronta .janela-barra span { background: var(--verde-600); }
+.janela-overlay.quase  .janela-barra span { background: var(--dourado-600); }
+
+.janela-overlay.pronta #janelaIniciar2 {
+    box-shadow: var(--sombra-dourada);
+}
+
+.janela-acoes {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+}
+
+/* =========================
    RESPONSIVIDADE
    ========================= */
 
@@ -958,4 +1133,15 @@ footer {
     .metrica-rotulo { margin-bottom: 0; }
     .metrica-valor { font-size: 18px; }
     .metrica.destaque .metrica-valor { font-size: 19px; }
+
+    /* Janela de comparação */
+    .janela { padding: 22px 18px; }
+    .janela-comparacao { grid-template-columns: 1fr; }
+    .janela-item {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+    }
+    .janela-item strong { margin-top: 0; font-size: 18px; }
+    .janela-acoes .btn { flex: 1; }
 }
