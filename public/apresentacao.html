@@ -181,7 +181,51 @@
     <p>Nobre Ciência © 2026</p>
 </footer>
 
-<script src="app.js?v=5"></script>
+
+<!-- JANELA DE COMPARAÇÃO (aparece ao parar a Cápsula 1) -->
+<div id="janelaComparacao" class="janela-overlay" role="dialog"
+     aria-modal="true" aria-labelledby="janelaTitulo">
+    <div class="janela">
+        <button id="janelaFechar" type="button" class="janela-fechar"
+                aria-label="Fechar janela">×</button>
+
+        <span class="eyebrow eyebrow-dourado">PREPARAR CÁPSULA 2</span>
+        <h3 id="janelaTitulo">Igualar a temperatura inicial</h3>
+        <p class="janela-desc">
+            Aguarde a temperatura atual se aproximar da temperatura
+            com que a Cápsula 1 começou.
+        </p>
+
+        <div class="janela-comparacao">
+            <div class="janela-item">
+                <span>Inicial da Cápsula 1</span>
+                <strong id="janelaInicial">--</strong>
+            </div>
+            <div class="janela-item">
+                <span>Temperatura atual</span>
+                <strong id="janelaAtual">--</strong>
+            </div>
+            <div class="janela-item">
+                <span>Diferença</span>
+                <strong id="janelaDiferenca">--</strong>
+            </div>
+        </div>
+
+        <div class="janela-barra"><span id="janelaBarraPreench"></span></div>
+
+        <div id="janelaAviso" class="janela-aviso longe">
+            <strong id="janelaAvisoTitulo">Aguardando</strong>
+            <span id="janelaAvisoTexto"></span>
+        </div>
+
+        <div class="janela-acoes">
+            <button id="janelaFechar2" type="button" class="btn btn-outline">Fechar</button>
+            <button id="janelaIniciar2" type="button" class="btn btn-dourado">Iniciar Cápsula 2</button>
+        </div>
+    </div>
+</div>
+
+<script src="app.js?v=6"></script>
 
 </body>
 </html>
