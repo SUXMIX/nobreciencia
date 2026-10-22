@@ -88,45 +88,19 @@ a { color: inherit; text-decoration: none; }
 .topnav-brand {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
     color: #F7F2E6;
 }
 
-.brand-mark {
-    width: 34px;
-    height: 34px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: "Cinzel", serif;
-    font-size: 16px;
-    font-weight: 700;
-    color: var(--verde-950);
-    background: linear-gradient(135deg, var(--dourado-400) 0%, var(--dourado-500) 45%, var(--dourado-700) 100%);
-    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25), 0 4px 14px rgba(201, 162, 75, .3);
+/* Logo (já contém o nome — não repetir texto ao lado) */
+.brand-logo {
+    display: block;
+    height: 44px;
+    width: auto;
+    max-width: 100%;
+    flex-shrink: 0;
 }
 
-.brand-mark-sm { width: 30px; height: 30px; font-size: 14px; }
-
-.brand-name {
-    display: flex;
-    flex-direction: column;
-    line-height: 1;
-    font-family: "Cinzel", serif;
-    font-weight: 600;
-    letter-spacing: 4px;
-    text-transform: uppercase;
-}
-
-.brand-name strong { font-size: 12px; color: #F7F2E6; }
-.brand-name em {
-    font-style: normal;
-    font-size: 10px;
-    color: var(--dourado-500);
-    margin-top: 4px;
-    letter-spacing: 5px;
-}
+.brand-logo-sm { height: 40px; }
 
 .topnav-links {
     display: flex;
@@ -1173,17 +1147,7 @@ main {
 .footer-brand {
     display: flex;
     align-items: center;
-    gap: 12px;
-}
-
-.footer-brand strong {
-    display: block;
-    font-family: "Cinzel", serif;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: #F7F2E6;
+    gap: 16px;
 }
 
 .footer-brand span {
@@ -1191,7 +1155,6 @@ main {
     font-size: 11px;
     letter-spacing: .3px;
     color: var(--dourado-500);
-    margin-top: 4px;
 }
 
 .footer-meta {
@@ -1236,6 +1199,9 @@ main {
 @media (max-width: 720px) {
     .topnav-links a:not(.topnav-cta) { display: none; }
 
+    .brand-logo { height: 38px; }
+    .brand-logo-sm { height: 36px; }
+
     .section { padding: 68px 0; }
 
     .pillars,
@@ -1256,7 +1222,7 @@ main {
     .eunice-facts { grid-template-columns: 1fr; gap: 18px; }
 
     .footer-inner { flex-direction: column; text-align: center; }
-    .footer-brand { justify-content: center; }
+    .footer-brand { justify-content: center; flex-direction: column; gap: 10px; }
 }
 
 @media (max-width: 480px) {
@@ -1288,8 +1254,8 @@ button:focus-visible {
 
 .topnav { box-shadow: 0 8px 24px rgba(6, 22, 17, .18); }
 
-.brand-mark { transition: transform .35s cubic-bezier(.2, .7, .2, 1); }
-.topnav-brand:hover .brand-mark { transform: rotate(-6deg) scale(1.05); }
+.brand-logo { transition: transform .35s cubic-bezier(.2, .7, .2, 1); }
+.topnav-brand:hover .brand-logo { transform: scale(1.04); }
 
 .topnav-links a:not(.topnav-cta)::after {
     content: "";
