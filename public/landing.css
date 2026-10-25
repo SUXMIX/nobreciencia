@@ -1828,3 +1828,40 @@ button:focus-visible {
     letter-spacing: .3px;
     color: var(--texto-mute);
 }
+
+
+/* ============================================================
+   V7 — Botão "Grace Hopper" no menu
+   ============================================================ */
+
+.topnav-links a.topnav-gh {
+    padding: 7px 15px;
+    border-radius: 100px;
+    border: 1px solid rgba(247, 242, 230, .28);
+    background: rgba(247, 242, 230, .05);
+    color: #F7F2E6;
+    font-weight: 600;
+    letter-spacing: .2px;
+    transition: background .2s ease, border-color .2s ease, color .2s ease, transform .2s ease;
+}
+
+.topnav-links a.topnav-gh::after { display: none; }
+
+.topnav-links a.topnav-gh:hover {
+    background: rgba(247, 242, 230, .12);
+    border-color: var(--dourado-400);
+    color: var(--dourado-400);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 720px) {
+    .topnav-links { gap: 8px; }
+    .topnav-links a.topnav-gh { display: inline-flex; padding: 7px 12px; font-size: 12px; }
+    .topnav-cta { padding: 7px 12px; font-size: 12px; }
+    .topnav-cta svg { display: none; }
+}
+
+@media (max-width: 380px) {
+    .brand-logo { height: 32px; }
+    .topnav-inner { padding-left: 14px; padding-right: 14px; gap: 10px; }
+}
