@@ -16,7 +16,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="hopper.css?v=2">
+    <link rel="stylesheet" href="hopper.css?v=4">
 </head>
 
 <body>
@@ -81,7 +81,7 @@
 
         <figure class="retrato">
             <div class="retrato-moldura">
-                <img src="gracehopper.jpg" alt="Retrato de Grace Hopper" width="480" height="600">
+                <img src="gracehopper.png" alt="Retrato de Grace Hopper" width="480" height="600">
             </div>
             <figcaption>
                 <span>Matemática · Cientista da computação · Almirante</span>
@@ -198,8 +198,8 @@
         <div class="filmes-grid">
 
             <article class="filme">
-                <div class="filme-capa">
-                    <img src="maca.webp" alt="Cena ou capa do filme A Maçã" loading="lazy">
+                <div class="filme-capa" style="--capa: url('maca.png')">
+                    <img src="maca.png" alt="Cena ou capa do filme A Maçã" loading="lazy">
                 </div>
                 <div class="filme-info">
                     <span class="filme-tag">Irã · França · 1998</span>
@@ -221,8 +221,8 @@
             </article>
 
             <article class="filme">
-                <div class="filme-capa">
-                    <img src="jovem.jpg" alt="Cena ou capa do filme Retrato de uma Jovem em Chamas" loading="lazy">
+                <div class="filme-capa" style="--capa: url('jovem.png')">
+                    <img src="jovem.png" alt="Cena ou capa do filme Retrato de uma Jovem em Chamas" loading="lazy">
                 </div>
                 <div class="filme-info">
                     <span class="filme-tag">França · 2019</span>
@@ -282,16 +282,38 @@
                     Compilar e Executar
                 </button>
                 <button type="button" id="btnLimpar" class="ide-btn ide-btn-discreto">Limpar terminal</button>
+                <button type="button" id="btnTelaCheia" class="ide-btn ide-btn-tela" aria-pressed="false" title="Abrir em tela cheia">
+                    <svg class="ico-expandir" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5"/><path d="M20 9V4h-5"/><path d="M4 15v5h5"/><path d="M20 15v5h-5"/></svg>
+                    <svg class="ico-recolher" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4v5H4"/><path d="M15 4v5h5"/><path d="M9 20v-5H4"/><path d="M15 20v-5h5"/></svg>
+                    <span class="rot">Tela cheia</span>
+                </button>
             </div>
 
-            <div class="ide-abas"><span class="ide-aba">analise.c</span></div>
+            <div class="ide-abas">
+                <span class="ide-aba">analise.c</span>
+                <span class="ide-zoom" role="group" aria-label="Zoom do código">
+                    <span class="zoom-rot">Código</span>
+                    <button type="button" class="zoom-b" data-zoom="codigo" data-acao="menos" aria-label="Diminuir o código">−</button>
+                    <button type="button" class="zoom-b zoom-val" data-zoom="codigo" data-acao="reset" title="Voltar a 100%" aria-label="Restaurar o zoom do código">100%</button>
+                    <button type="button" class="zoom-b" data-zoom="codigo" data-acao="mais" aria-label="Aumentar o código">+</button>
+                </span>
+            </div>
 
             <div class="ide-editor" tabindex="0" role="region" aria-label="Código-fonte em C">
                 <div id="codigo-fonte" class="fonte"></div>
             </div>
 
+            <div class="ide-divisor" id="ideDivisor" role="separator" aria-orientation="horizontal"
+                 aria-label="Redimensionar o terminal" tabindex="0"
+                 title="Arraste para ajustar o terminal (duplo clique: ampliar ou restaurar)"><span></span></div>
+
             <div class="ide-term-cab">
                 <span>Terminal</span>
+                <span class="ide-zoom" role="group" aria-label="Zoom do terminal">
+                    <button type="button" class="zoom-b" data-zoom="term" data-acao="menos" aria-label="Diminuir o terminal">−</button>
+                    <button type="button" class="zoom-b zoom-val" data-zoom="term" data-acao="reset" title="Voltar a 100%" aria-label="Restaurar o zoom do terminal">100%</button>
+                    <button type="button" class="zoom-b" data-zoom="term" data-acao="mais" aria-label="Aumentar o terminal">+</button>
+                </span>
                 <span id="ideStatus" class="ide-status">Pronto</span>
             </div>
             <div id="term" class="ide-term" role="log" aria-live="polite"></div>
@@ -300,6 +322,7 @@
                 <span>C</span>
                 <span>UTF-8</span>
                 <span id="ideLinhas">— linhas</span>
+                <span class="ide-dica">Arraste a barra acima do terminal para ajustar o tamanho · Ctrl + rolagem ou pinça para zoom</span>
             </div>
         </div>
 
@@ -330,7 +353,7 @@
     </div>
 </footer>
 
-<script src="hopper.js?v=2"></script>
+<script src="hopper.js?v=4"></script>
 
 </body>
 </html>
