@@ -580,14 +580,22 @@ main { width: min(var(--max), calc(100% - 44px)); margin: 0 auto; }
 
 .filme-capa {
     position: relative;
-    aspect-ratio: 16 / 11;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     background:
         radial-gradient(300px 200px at 50% 0%, rgba(255, 255, 255, .15), transparent 60%),
         linear-gradient(160deg, var(--azul-700), var(--azul-950));
     overflow: hidden;
 }
 
-.filme-capa img { width: 100%; height: 100%; object-fit: cover; object-position: center; }
+.filme-capa img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: min(80vh, 640px);
+    object-fit: contain;
+}
 
 .filme-info { padding: 26px 26px 28px; display: flex; flex-direction: column; gap: 10px; }
 
@@ -915,7 +923,8 @@ main { width: min(var(--max), calc(100% - 44px)); margin: 0 auto; }
 
 @media (min-width: 760px) {
     .filme { grid-template-columns: 38% 1fr; }
-    .filme-capa { aspect-ratio: auto; min-height: 100%; }
+    .filme-capa { min-height: 360px; }
+    .filme-capa img { position: absolute; inset: 0; height: 100%; max-height: none; }
     .hero-stats { grid-template-columns: repeat(4, 1fr); }
     .stat { border: 0 !important; }
     .stat + .stat { border-left: 1px solid rgba(255, 255, 255, .14) !important; }
@@ -965,4 +974,188 @@ main { width: min(var(--max), calc(100% - 44px)); margin: 0 auto; }
     .timeline { padding: 24px 18px; }
     .timeline::before { left: 28px; }
     .filme-info { padding: 22px 20px 24px; }
+}
+
+
+/* ============================================================
+   V3 — ZOOM, TELA CHEIA E TERMINAL REDIMENSIONÁVEL
+   ============================================================ */
+
+.ide {
+    --fs-codigo: 13px;
+    --fs-term: 12.5px;
+    display: flex;
+    flex-direction: column;
+}
+
+.ide > * { flex: 0 0 auto; }
+
+/* Fonte do código e do terminal seguem o zoom de cada painel */
+.fonte { font-size: calc(var(--fs-codigo) * var(--zoom-codigo, 1)); }
+
+.ide-term {
+    height: var(--term-h, 340px);
+    font-size: calc(var(--fs-term) * var(--zoom-term, 1));
+    touch-action: pan-x pan-y;
+}
+
+.ide-editor { flex: 0 1 auto; touch-action: pan-x pan-y; }
+
+.ln .n { width: 3.8em; padding-right: 1.2em; }
+
+/* Barra de abas com zoom do código */
+.ide-abas {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding-right: 10px;
+}
+
+.ide-zoom { display: inline-flex; align-items: center; gap: 4px; }
+
+.zoom-rot {
+    margin-right: 4px;
+    font-family: "Inter", sans-serif;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: var(--ide-mute);
+}
+
+.zoom-b {
+    height: 26px;
+    min-width: 28px;
+    padding: 0 8px;
+    font-family: "Inter", sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--ide-texto);
+    background: #3a3d41;
+    border: 1px solid #4a4d52;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background .15s ease;
+}
+
+.zoom-b:hover { background: #4a4d52; }
+.zoom-val { min-width: 52px; font-size: 11.5px; font-variant-numeric: tabular-nums; }
+
+/* Cabeçalho do terminal (também serve para arrastar) */
+.ide-term-cab {
+    justify-content: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+    cursor: row-resize;
+    user-select: none;
+    touch-action: none;
+}
+
+.ide-term-cab .ide-zoom { margin-left: auto; cursor: default; }
+.ide-term-cab .ide-status { cursor: default; }
+
+/* Divisor arrastável */
+.ide-divisor {
+    position: relative;
+    height: 12px;
+    background: var(--ide-bg-2);
+    border-top: 1px solid var(--ide-borda);
+    cursor: row-resize;
+    touch-action: none;
+    transition: background .15s ease;
+}
+
+.ide-divisor span {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 48px; height: 4px;
+    transform: translate(-50%, -50%);
+    border-radius: 4px;
+    background: #5a5d63;
+    transition: background .15s ease;
+}
+
+.ide-divisor:hover,
+.ide-divisor:focus-visible,
+.ide.arrastando .ide-divisor { background: #34383e; }
+
+.ide-divisor:hover span,
+.ide-divisor:focus-visible span,
+.ide.arrastando .ide-divisor span { background: var(--vermelho-500); }
+
+.ide.arrastando, .ide.arrastando * { user-select: none; cursor: row-resize !important; }
+
+/* Botão de tela cheia */
+.ide-btn-tela .ico-recolher { display: none; }
+.ide.cheia .ide-btn-tela .ico-expandir { display: none; }
+.ide.cheia .ide-btn-tela .ico-recolher { display: block; }
+
+/* Tela cheia (nativa ou alternativa para celulares) */
+.ide.cheia {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
+.ide.tela-cheia {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+    height: 100vh;
+    height: 100dvh;
+}
+
+.ide.cheia .ide-editor {
+    flex: 1 1 0;
+    min-height: 80px;
+    max-height: none;
+}
+
+html.trava, html.trava body { overflow: hidden; }
+
+@media (max-width: 720px) {
+    .ide { --fs-codigo: 11.5px; --fs-term: 11.5px; }
+    .zoom-rot { display: none; }
+    .ide-divisor { height: 18px; }
+    .ide-term-cab { padding-top: 10px; padding-bottom: 10px; }
+    .ide-abas { padding-right: 8px; }
+}
+
+
+/* ============================================================
+   V4 — capas dos filmes inteiras (fundo desfocado) e dica do IDE
+   ============================================================ */
+
+.filme-capa::before {
+    content: "";
+    position: absolute;
+    inset: -24px;
+    background: var(--capa) center / cover no-repeat;
+    filter: blur(24px) brightness(.5) saturate(1.2);
+}
+
+@media (max-width: 759px) {
+    .filme-capa img { position: relative; }
+}
+
+.ide-dica { margin-left: auto; color: rgba(255, 255, 255, .75); }
+
+@media (max-width: 720px) {
+    .ide-dica { display: none; }
+}
+
+/* Tela cheia no celular: menos barras, mais espaço para o código */
+@media (max-width: 720px) {
+    .ide.cheia .ide-barra { display: none; }
+    .ide.cheia .ide-ferramentas { padding: 6px 8px; gap: 6px; }
+    .ide.cheia .ide-btn { padding: 6px 10px; font-size: 11.5px; }
+    .ide.cheia .ide-btn-discreto { margin-left: 0; }
+    .ide.cheia .ide-term-cab { padding: 6px 12px; gap: 8px; }
+    .ide.cheia .ide-status { font-size: 9.5px; padding: 2px 8px; }
+    .ide.cheia .zoom-b { height: 24px; }
 }
