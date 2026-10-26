@@ -421,6 +421,218 @@ int main(){
 
 
     // ========================================================
+    // IDE: zoom, tela cheia e terminal redimensionável
+    // ========================================================
+
+    const ide       = $("ide");
+    const divisor   = $("ideDivisor");
+    const btnTela   = $("btnTelaCheia");
+    const cabTerm   = ide ? ide.querySelector(".ide-term-cab") : null;
+
+    if (ide && editor && term && divisor && cabTerm && btnTela) {
+
+        // ---------- Zoom (código e terminal, independentes) ----------
+
+        const ZOOM_MIN = 0.6, ZOOM_MAX = 2.5, ZOOM_PASSO = 0.1;
+        const zoom = { codigo: 1, term: 1 };
+
+        function definirZoom(chave, valor) {
+            const v = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(valor * 100) / 100));
+            zoom[chave] = v;
+            ide.style.setProperty("--zoom-" + chave, String(v));
+            ide.querySelectorAll('.zoom-val[data-zoom="' + chave + '"]').forEach(function (b) {
+                b.textContent = Math.round(v * 100) + "%";
+            });
+        }
+
+        ide.querySelectorAll("[data-zoom]").forEach(function (b) {
+            b.addEventListener("click", function () {
+                const k = b.dataset.zoom;
+                if (b.dataset.acao === "mais")       definirZoom(k, zoom[k] + ZOOM_PASSO);
+                else if (b.dataset.acao === "menos") definirZoom(k, zoom[k] - ZOOM_PASSO);
+                else                                 definirZoom(k, 1);
+            });
+        });
+
+        // Ctrl + roda do mouse (ou pinça no touchpad) e pinça com dois dedos
+        function gestos(el, chave) {
+            el.addEventListener("wheel", function (e) {
+                if (!e.ctrlKey) return;
+                e.preventDefault();
+                definirZoom(chave, zoom[chave] + (e.deltaY < 0 ? ZOOM_PASSO : -ZOOM_PASSO));
+            }, { passive: false });
+
+            let d0 = 0, z0 = 1;
+            const dist = function (t) {
+                return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+            };
+
+            el.addEventListener("touchstart", function (e) {
+                if (e.touches.length === 2) { d0 = dist(e.touches); z0 = zoom[chave]; }
+            }, { passive: true });
+
+            el.addEventListener("touchmove", function (e) {
+                if (e.touches.length === 2 && d0 > 0) {
+                    e.preventDefault();
+                    definirZoom(chave, z0 * dist(e.touches) / d0);
+                }
+            }, { passive: false });
+
+            el.addEventListener("touchend", function (e) {
+                if (e.touches.length < 2) d0 = 0;
+            });
+        }
+
+        gestos(editor, "codigo");
+        gestos(term, "term");
+
+
+        // ---------- Altura do terminal (arrastar) ----------
+
+        const ALTURA_PADRAO = window.innerWidth <= 720 ? 260 : 340;
+        const MIN_TERM = 70;
+        const MIN_EDITOR_CHEIA = 90;
+        let alturaNormal = ALTURA_PADRAO;
+        let alturaCheia = null;
+
+        function emTelaCheia() { return ide.classList.contains("cheia"); }
+
+        function limitesAltura() {
+            let max = 720;
+            if (emTelaCheia()) {
+                const fixo = ide.clientHeight - editor.clientHeight - term.offsetHeight;
+                max = ide.clientHeight - fixo - MIN_EDITOR_CHEIA;
+            }
+            return { min: MIN_TERM, max: Math.max(MIN_TERM, max) };
+        }
+
+        function padraoCheia() { return Math.round(ide.clientHeight * 0.38); }
+
+        function definirAltura(h) {
+            const lim = limitesAltura();
+            h = Math.round(Math.min(lim.max, Math.max(lim.min, h)));
+            if (emTelaCheia()) alturaCheia = h; else alturaNormal = h;
+            ide.style.setProperty("--term-h", h + "px");
+        }
+
+        function alternarMaximo() {
+            const lim = limitesAltura();
+            if (term.offsetHeight >= lim.max - 4) {
+                definirAltura(emTelaCheia() ? padraoCheia() : ALTURA_PADRAO);
+            } else {
+                definirAltura(lim.max);
+            }
+        }
+
+        function iniciarArraste(e) {
+            if (e.target.closest("button")) return;
+            if (e.pointerType === "mouse" && e.button !== 0) return;
+            e.preventDefault();
+
+            const alvo = e.currentTarget;
+            const y0 = e.clientY;
+            const h0 = term.offsetHeight;
+
+            try { alvo.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
+            ide.classList.add("arrastando");
+
+            function mover(ev) { definirAltura(h0 + (y0 - ev.clientY)); }
+            function fim() {
+                ide.classList.remove("arrastando");
+                alvo.removeEventListener("pointermove", mover);
+                alvo.removeEventListener("pointerup", fim);
+                alvo.removeEventListener("pointercancel", fim);
+            }
+
+            alvo.addEventListener("pointermove", mover);
+            alvo.addEventListener("pointerup", fim);
+            alvo.addEventListener("pointercancel", fim);
+        }
+
+        divisor.addEventListener("pointerdown", iniciarArraste);
+        cabTerm.addEventListener("pointerdown", iniciarArraste);
+
+        divisor.addEventListener("dblclick", alternarMaximo);
+        cabTerm.addEventListener("dblclick", function (e) {
+            if (!e.target.closest("button")) alternarMaximo();
+        });
+
+        divisor.addEventListener("keydown", function (e) {
+            if (e.key === "ArrowUp")        { e.preventDefault(); definirAltura(term.offsetHeight + 30); }
+            else if (e.key === "ArrowDown") { e.preventDefault(); definirAltura(term.offsetHeight - 30); }
+            else if (e.key === "Enter" || e.key === " ") { e.preventDefault(); alternarMaximo(); }
+        });
+
+
+        // ---------- Tela cheia ----------
+
+        function elementoTelaCheia() {
+            return document.fullscreenElement || document.webkitFullscreenElement || null;
+        }
+
+        function atualizarTela() {
+            const ativo = elementoTelaCheia() === ide || ide.classList.contains("tela-cheia");
+            ide.classList.toggle("cheia", ativo);
+
+            btnTela.setAttribute("aria-pressed", ativo ? "true" : "false");
+            btnTela.title = ativo ? "Sair da tela cheia" : "Abrir em tela cheia";
+            btnTela.querySelector(".rot").textContent = ativo ? "Sair da tela cheia" : "Tela cheia";
+
+            requestAnimationFrame(function () {
+                if (ativo) {
+                    definirAltura(alturaCheia !== null ? alturaCheia : padraoCheia());
+                } else {
+                    definirAltura(alturaNormal);
+                }
+            });
+        }
+
+        async function entrarTela() {
+            const pedir = ide.requestFullscreen || ide.webkitRequestFullscreen;
+            if (pedir) {
+                try { await pedir.call(ide); return; } catch (err) { /* usa a alternativa */ }
+            }
+            // Alternativa (ex.: iPhone): ocupa a janela inteira
+            ide.classList.add("tela-cheia");
+            document.documentElement.classList.add("trava");
+            atualizarTela();
+        }
+
+        function sairTela() {
+            if (elementoTelaCheia()) {
+                const sair = document.exitFullscreen || document.webkitExitFullscreen;
+                if (sair) sair.call(document);
+            }
+            if (ide.classList.contains("tela-cheia")) {
+                ide.classList.remove("tela-cheia");
+                document.documentElement.classList.remove("trava");
+                atualizarTela();
+            }
+        }
+
+        btnTela.addEventListener("click", function () {
+            if (emTelaCheia()) sairTela(); else entrarTela();
+        });
+
+        document.addEventListener("fullscreenchange", atualizarTela);
+        document.addEventListener("webkitfullscreenchange", atualizarTela);
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape" && ide.classList.contains("tela-cheia")) sairTela();
+        });
+
+        window.addEventListener("resize", function () {
+            if (emTelaCheia()) definirAltura(term.offsetHeight);
+        });
+
+        // Estado inicial
+        definirZoom("codigo", 1);
+        definirZoom("term", 1);
+        definirAltura(alturaNormal);
+    }
+
+
+    // ========================================================
     // PÁGINA: revelar ao rolar, progresso e menu
     // ========================================================
 
